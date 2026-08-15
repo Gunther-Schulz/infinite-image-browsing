@@ -203,6 +203,23 @@ export function useFileItemActions (
         file.name =  newPath.split(/[\\/]/).pop() ?? ''
         return 
       }
+      case 'send2wan2gpSettings': {
+        // Wan2GP's generation settings live in the file itself - a JSON blob in
+        // the MP4 container's comment tag, or the PNG's metadata - and wgp.py
+        // has its own loader that reads them, resolves the model type, and
+        // migrates older payloads through its settings_version chain. So only
+        // the path travels; the host plugin hands it to that loader.
+        //
+        // No setImgPath round-trip first, unlike the A1111 sends below: nothing
+        // here needs the image staged, only named.
+        imgTransferBus.postMessage({
+          ...preset,
+          event: 'wan2gp_load_settings',
+          path: file.fullpath
+        })
+        message.success('Settings sent to the generator')
+        return
+      }
       case 'send2txt2img':
         return copyImgTo('txt2img')
       case 'send2img2img':

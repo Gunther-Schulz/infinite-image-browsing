@@ -506,6 +506,7 @@ const editPromptAndReload = async () => {
             <template #overlay>
               <a-menu @click="emit('contextMenuClick', $event, file, idx)">
                 <template v-if="global.conf?.launch_mode !== 'server'">
+                  <a-menu-item key="send2wan2gpSettings">Send settings to generator</a-menu-item>
                   <a-menu-item key="send2txt2img">{{ $t('sendToTxt2img') }}</a-menu-item>
                   <a-menu-item key="send2img2img">{{ $t('sendToImg2img') }}</a-menu-item>
                   <a-menu-item key="send2inpaint">{{ $t('sendToInpaint') }}</a-menu-item>
