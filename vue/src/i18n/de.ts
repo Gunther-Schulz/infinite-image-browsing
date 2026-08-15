@@ -211,6 +211,7 @@ export const de: Partial<IIBI18nMap> = {
   openInNewTab: 'In neuem Tab öffnen',
   openWithWalkMode: 'Im Walk-Modus öffnen',
   longPressOpenContextMenu: 'Langes Rechtsklicken zur Öffnung des Kontextmenüs unterstützen',
+  autoPlayMedia: 'Videos und Audio beim Öffnen automatisch starten',
   searchResults: 'Suchergebnisse',
   imgSearch: 'Bildsuche',
   send2savedDir: 'In den gespeicherten Ordner senden',

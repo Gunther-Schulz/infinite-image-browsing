@@ -243,6 +243,7 @@ export const zhHant: Partial<IIBI18nMap> = {
   openInNewTab: '在新分頁打開',
   openWithWalkMode: '使用 Walk 模式打開',
   longPressOpenContextMenu: '支持使用長按打開右鍵功能表',
+  autoPlayMedia: '開啟時自動播放影片和音訊',
   searchResults: '搜尋結果',
   imgSearch: '圖片搜尋',
   onlyFoldersAndImages: '只顯示文件夾/圖片/視頻',

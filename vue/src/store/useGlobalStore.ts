@@ -220,6 +220,7 @@ export const presistKeys = [
   'recent',
   'gridThumbnailResolution',
   'longPressOpenContextMenu',
+  'autoPlayMedia',
   'onlyFoldersAndImages',
   'fileTypeFilter',
   'shortcut',
@@ -331,6 +332,11 @@ export const useGlobalStore = defineStore(
     watch(lang, (v) => (i18n.global.locale.value = v as any))
 
     const longPressOpenContextMenu = ref(false)
+
+    // Opening a clip should not start it. Default off: a gallery is for
+    // looking through, and sound firing on every click is worse than one
+    // extra press for the people who want playback.
+    const autoPlayMedia = ref(false)
 
     const shortcut = ref<Shortcut>({
       delete: '',
@@ -466,6 +472,7 @@ export const useGlobalStore = defineStore(
       tabListHistoryRecord,
       gridThumbnailResolution,
       longPressOpenContextMenu,
+      autoPlayMedia,
       openTagSearchMatchedImageGridInRight,
       onlyFoldersAndImages: ref(true), // 保留用于向后兼容
       fileTypeFilter: ref<('image' | 'video' | 'audio' | 'all')[]>(['image', 'video', 'audio']), // 新的多选过滤

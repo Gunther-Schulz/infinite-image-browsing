@@ -134,7 +134,7 @@ const openMediaModalImpl = (
     // move a name between groups to reorder it.
     const PRIORITY = [
       // Which model
-      'model_type', 'base_model_type', 'model_filename', 'model_mode', 'type',
+      'type', 'model_type', 'base_model_type', 'model_filename', 'model_mode',
       // How it was sampled - the fields you change between attempts
       'seed', 'steps', 'num_inference_steps', 'guidance_scale',
       'guidance2_scale', 'guidance3_scale', 'guidance_phases',
@@ -274,11 +274,11 @@ const openMediaModalImpl = (
         }}
       >
         {mediaType === 'video' ? (
-          <video ref={videoRef} style={{ maxHeight: isStandalone ? '80vh' : '60vh', maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay></video>
+          <video ref={videoRef} style={{ maxHeight: isStandalone ? '80vh' : '60vh', maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></video>
         ) : (
           <>
             <div style={{ fontSize: '80px', marginBottom: '16px' }}>🎵</div>
-            <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay></audio>
+            <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></audio>
           </>
         )}
 
@@ -345,7 +345,7 @@ const openMediaModalImpl = (
             <Spin />
           </div>
         ) : imageGenInfo.value ? (
-          <div style={{ marginTop: '24px', width: '100%', maxWidth: mediaType === 'video' ? '1000px' : '900px', alignSelf: 'flex-start' }}>
+          <div style={{ marginTop: '24px', width: '100%', maxWidth: mediaType === 'video' ? '1000px' : '900px', alignSelf: 'center' /* centred like the player and buttons above; flex-start left this block hanging off to one side */ }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--zp-primary)', fontSize: '14px', fontWeight: 500 }}>
               <FileTextOutlined />
               <span>Prompt</span>
