@@ -86,6 +86,49 @@ def test(file_path: str) -> bool:
     return _find_generation_json(read_container_tags(file_path)) is not None
 
 
+def _build_raw_info(data: dict, prompt: str, meta: dict) -> str:
+    """The payload in the shape the info panel's parser reads.
+
+    raw_info is not shown verbatim, which is the mistake this replaces. The
+    panel runs it through an A1111 parameters-string parser
+    (stable-diffusion-image-metadata.ts): a prompt, then a line beginning
+    "Negative prompt: ", then a details line beginning "Steps: " carrying
+    comma-separated key/value pairs. Handed pretty-printed JSON instead, that
+    parser finds no Steps line, treats the whole blob as the prompt, and the
+    panel shows forty lines of JSON under "Positive" - with "Meta" empty,
+    because the details line it builds Meta from was never there.
+
+    So the payload is written in the format the reader expects. Nothing is
+    lost: the parser also understands a trailing "extraJsonMetaInfo:" object
+    and returns it as structured data, so the complete original still travels -
+    it just stops impersonating a prompt.
+    """
+    lines = [prompt] if prompt else []
+
+    negative = data.get("negative_prompt") or ""
+    if negative:
+        lines.append(f"Negative prompt: {negative}")
+
+    # The details line must LEAD with "Steps: " - that is how the parser picks
+    # it out from among the prompt lines - so steps go first and the rest after.
+    steps = data.get("num_inference_steps")
+    details = [f"Steps: {steps if steps not in (None, '') else 0}"]
+    for key, value in meta.items():
+        if key in ("num_inference_steps", "negative_prompt"):
+            continue
+        # Commas separate pairs, so a value holding one would split into two
+        # bogus fields. Those keep their place in the JSON below instead.
+        text = str(value)
+        if "," in text or "\n" in text:
+            continue
+        details.append(f"{key}: {text}")
+    lines.append(", ".join(details))
+
+    # The whole original, structured, after everything the parser reads.
+    lines.append("extraJsonMetaInfo: " + json.dumps(data, ensure_ascii=False))
+    return "\n".join(lines)
+
+
 def parse(file_path: str) -> Optional[ImageGenerationInfo]:
     """Generation info from the container, or None if there is none to read."""
     data = _find_generation_json(read_container_tags(file_path))
@@ -116,9 +159,7 @@ def parse(file_path: str) -> Optional[ImageGenerationInfo]:
     prompt = data.get("prompt") or ""
     pos_prompt = parse_prompt(prompt)["pos_prompt"] if prompt else []
 
-    # raw_info is what the panel shows verbatim, so it is the whole payload
-    # pretty-printed - nothing the generator recorded is hidden from the reader.
-    raw_info = json.dumps(data, indent=2, ensure_ascii=False)
+    raw_info = _build_raw_info(data, prompt, meta)
 
     extra = dict(data)
     extra["Source Identifier"] = "Video Container Tags"

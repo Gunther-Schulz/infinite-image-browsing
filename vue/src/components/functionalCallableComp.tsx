@@ -88,6 +88,47 @@ const openMediaModalImpl = (
   // 解析提示词结构
   const geninfoStruct = () => parse(imageGenInfo.value)
 
+  // The Meta table's rows: [label, value] pairs, ready to render.
+  //
+  // Two things this has to get right that a plain key/value dump did not.
+  // extraJsonMetaInfo is an OBJECT - the parser hands back the generator's
+  // full payload under that one key - so printing it directly gives
+  // "[object Object]" and hides everything in it; its entries are flattened in
+  // instead, which is the point of keeping it. And empty values are dropped:
+  // a row reading "Resources:" with nothing after it is the whole reason this
+  // panel looked broken rather than sparse.
+  const metaRows = (): [string, string][] => {
+    const skip = new Set(['prompt', 'negativePrompt', 'extraJsonMetaInfo'])
+    const rows: [string, string][] = []
+    const seen = new Set<string>()
+
+    const push = (key: string, value: unknown) => {
+      if (value === null || value === undefined) return
+      const text = typeof value === 'object' ? JSON.stringify(value) : String(value)
+      if (!text.trim() || text === '{}' || text === '[]') return
+      const label = key.charAt(0).toUpperCase() + key.slice(1)
+      if (seen.has(label.toLowerCase())) return
+      seen.add(label.toLowerCase())
+      rows.push([label, text])
+    }
+
+    const struct = geninfoStruct() as Record<string, unknown>
+    for (const [key, value] of Object.entries(struct)) {
+      if (skip.has(key)) continue
+      push(key, value)
+    }
+    // The generator's own payload, after the fields the parser recognised, so
+    // the familiar ones stay at the top.
+    const extra = struct.extraJsonMetaInfo
+    if (extra && typeof extra === 'object') {
+      for (const [key, value] of Object.entries(extra as Record<string, unknown>)) {
+        if (key === 'prompt' || key === 'negative_prompt') continue
+        push(key, value)
+      }
+    }
+    return rows
+  }
+
   // 计算文本长度（中文算3个字符）
   const getTextLength = (text: string): number => {
     let length = 0
@@ -275,15 +316,21 @@ const openMediaModalImpl = (
               </div>
             )}
             {/* Meta 信息 */}
-            {Object.entries(geninfoStruct()).filter(([key]) => key !== 'prompt' && key !== 'negativePrompt').length > 0 && (
+            {metaRows().length > 0 && (
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Meta</div>
-                <code style={{ fontSize: '12px', display: 'block', padding: '8px 12px', background: 'var(--zp-secondary-background)', borderRadius: '6px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.5em', color: 'var(--zp-primary)', opacity: 0.7 }}>
-                  {Object.entries(geninfoStruct())
-                    .filter(([key]) => key !== 'prompt' && key !== 'negativePrompt')
-                    .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
-                    .join('\n')}
-                </code>
+                <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
+                    <tbody>
+                      {metaRows().map(([key, value], i) => (
+                        <tr key={key} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
+                          <td style={{ padding: '5px 10px', width: '38%', color: 'var(--zp-primary)', opacity: 0.65, verticalAlign: 'top', wordBreak: 'break-word' }}>{key}</td>
+                          <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
