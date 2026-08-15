@@ -113,19 +113,66 @@ const openMediaModalImpl = (
     }
 
     const struct = geninfoStruct() as Record<string, unknown>
+    const collected: [string, unknown][] = []
     for (const [key, value] of Object.entries(struct)) {
       if (skip.has(key)) continue
-      push(key, value)
+      collected.push([key, value])
     }
-    // The generator's own payload, after the fields the parser recognised, so
-    // the familiar ones stay at the top.
     const extra = struct.extraJsonMetaInfo
     if (extra && typeof extra === 'object') {
       for (const [key, value] of Object.entries(extra as Record<string, unknown>)) {
         if (key === 'prompt' || key === 'negative_prompt') continue
-        push(key, value)
+        collected.push([key, value])
       }
     }
+
+    // Ordered by what a reader asks in sequence, not by what the file happened
+    // to store. The prompts have their own blocks above this table, so the
+    // first question about a clip is which model made it, then how it was
+    // sampled, then what came out, and only then the housekeeping. Grouped
+    // rather than one flat list so the reason for each position survives:
+    // move a name between groups to reorder it.
+    const PRIORITY = [
+      // Which model
+      'model_type', 'base_model_type', 'model_filename', 'model_mode', 'type',
+      // How it was sampled - the fields you change between attempts
+      'seed', 'steps', 'num_inference_steps', 'guidance_scale',
+      'guidance2_scale', 'guidance3_scale', 'guidance_phases',
+      'switch_threshold', 'switch_threshold2', 'flow_shift', 'sample_solver',
+      'denoising_strength', 'NAG_scale', 'NAG_tau', 'NAG_alpha',
+      // What came out
+      'resolution', 'size', 'video_length', 'fps', 'video_quality',
+      'num_frames', 'batch_size',
+      // LoRAs, which are the usual reason two clips differ
+      'lset_name', 'activated_loras', 'loras_multipliers',
+      // Other prompt inputs, the main ones having their own blocks above
+      'alt_prompt', 'prompt_enhancer', 'image_prompt_type',
+      'video_prompt_type', 'audio_prompt_type',
+      // Long-video windowing
+      'sliding_window_size', 'sliding_window_overlap',
+      'sliding_window_overlap_noise', 'sliding_window_discard_last_frames',
+      'repeat_generation', 'multi_prompts_gen_type',
+      // Post-processing
+      'temporal_upsampling', 'spatial_upsampling', 'film_grain_intensity',
+      'film_grain_saturation',
+      // Provenance - useful, rarely the thing you came for
+      'generation_time', 'creation_date', 'settings_version',
+    ]
+    const rank = (key: string) => {
+      const i = PRIORITY.indexOf(key.toLowerCase())
+      return i === -1 ? PRIORITY.length : i
+    }
+    // Unlisted keys go last, alphabetically. Arrival order would be arbitrary
+    // to the reader, and the tail is where the forty fields nobody named end
+    // up - alphabetical at least makes one findable by name.
+    collected.sort((a, b) => {
+      const d = rank(a[0]) - rank(b[0])
+      if (d !== 0) return d
+      if (rank(a[0]) < PRIORITY.length) return 0   // both listed: keep the list's order
+      return a[0].localeCompare(b[0])
+    })
+
+    for (const [key, value] of collected) push(key, value)
     return rows
   }
 
