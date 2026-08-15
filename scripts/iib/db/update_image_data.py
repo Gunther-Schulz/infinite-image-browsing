@@ -43,6 +43,18 @@ def get_exif_data(file_path):
             except Exception as e:
                 if is_dev:
                     logger.error("Failed to read video txt file %s: %s", txt_path, e)
+        # No sidecar. Video generators commonly write their settings into the
+        # container itself, which used to be unreachable here - so a file
+        # carrying complete metadata showed an empty info panel.
+        try:
+            from scripts.iib.parsers.video_container import parse as parse_video_container
+
+            info = parse_video_container(file_path)
+            if info is not None:
+                return info
+        except Exception as e:
+            if is_dev:
+                logger.error("Failed to read container tags from %s: %s", file_path, e)
         return ImageGenerationInfo()
     try:
         return parse_image_info(file_path)
