@@ -864,3 +864,41 @@ def accumulate_streaming_response(resp: requests.Response) -> str:
             content_buffer += chunk_text
 
     return content_buffer.strip()
+
+
+def read_video_frame(path: str, index: int = 16):
+    """A frame from a video, as an RGB array, for use as its cover.
+
+    Reads with pyav directly rather than through imageio, for one reason:
+    imageio's pyav plugin calls av.open() without metadata_errors, so pyav
+    UTF-8-decodes every container tag while opening the file and raises on the
+    first one that is not text. Generators embed binary in those tags - WanGP
+    stores a run's source image there, PNG bytes and all - and the very first
+    byte, 0x89, is not valid UTF-8. The video decodes perfectly; only the
+    metadata pass fails, and imageio reports it as "An unknown error occurred
+    while initializing plugin `pyav`", which points nowhere near the cause.
+
+    The result is a video that plays fine in the browser and shows no
+    thumbnail. imageio offers no way through: passing metadata_errors to
+    imread routes it to read() instead of av.open(), a TypeError.
+
+    Verified equal to what imageio produced on a file that already worked, so
+    this changes no existing cover - it only stops the ones that failed.
+
+    A video with fewer than `index` frames yields its last frame rather than
+    nothing: a short clip should still get a cover.
+    """
+    import av
+
+    with av.open(path, metadata_errors="ignore") as container:
+        stream = container.streams.video[0]
+        stream.thread_type = "AUTO"
+        last = None
+        for i, frame in enumerate(container.decode(stream)):
+            last = frame
+            if i >= index:
+                return frame.to_ndarray(format="rgb24")
+
+    if last is None:
+        raise ValueError(f"no decodable video frames in {path}")
+    return last.to_ndarray(format="rgb24")

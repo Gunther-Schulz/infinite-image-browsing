@@ -1,7 +1,12 @@
 import hashlib
 import os
 from typing import List
-from scripts.iib.tool import get_formatted_date, get_cache_dir, is_video_file
+from scripts.iib.tool import (
+    get_formatted_date,
+    get_cache_dir,
+    is_video_file,
+    read_video_frame,
+)
 from concurrent.futures import ThreadPoolExecutor
 import time
 
@@ -34,11 +39,7 @@ def generate_video_covers(dirs,verbose=False):
         print(f"Video cover already exists: {path}")
         return
 
-      frame = iio.imread(
-        path,
-        index=16,
-        plugin="pyav",
-      )
+      frame = read_video_frame(path, index=16)
 
       os.makedirs(cache_dir, exist_ok=True)
       iio.imwrite(cache_path, frame, extension=".webp")

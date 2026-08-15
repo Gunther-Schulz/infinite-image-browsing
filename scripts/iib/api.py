@@ -12,6 +12,7 @@ from scripts.iib.tool import (
     get_video_type,
     human_readable_size,
     is_valid_media_path,
+    read_video_frame,
     is_media_file,
     get_cache_dir,
     get_formatted_date,
@@ -788,11 +789,7 @@ def infinite_image_browsing_api(app: FastAPI, **kwargs):
                 mt,
                 cache_path,
             )
-            frame = iio.imread(
-                path,
-                index=16,
-                plugin="pyav",
-            )
+            frame = read_video_frame(path, index=16)
 
             os.makedirs(cache_dir, exist_ok=True)
             iio.imwrite(cache_path, frame, extension=".webp")
