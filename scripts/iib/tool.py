@@ -87,7 +87,13 @@ def backup_db_file(db_file_path):
     max_backup_count = int(os.environ.get('IIB_DB_FILE_BACKUP_MAX', '4'))
     if max_backup_count < 1:
         return
-    backup_folder = os.path.join(cwd,'iib_db_backup')
+    # Beside the database it backs up, not in the working directory. The
+    # database holds indexed prompts, so a copy of it in the working directory
+    # puts that text inside a git checkout - the same reason IIB_DB_PATH exists.
+    # Deriving from the db's own location means redirecting the database
+    # redirects its backups too, with no second variable to forget.
+    backup_folder = os.environ.get('IIB_DB_BACKUP_DIR') or os.path.join(
+        os.path.dirname(os.path.abspath(db_file_path)) or cwd, 'iib_db_backup')
     os.makedirs(backup_folder, exist_ok=True)
 
     # Check if backup already exists today
