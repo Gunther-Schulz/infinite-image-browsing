@@ -506,17 +506,21 @@ const editPromptAndReload = async () => {
             <template #overlay>
               <a-menu @click="emit('contextMenuClick', $event, file, idx)">
                 <template v-if="global.conf?.launch_mode !== 'server'">
-                  <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
-                  <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
-                  <a-menu-item key="send2txt2img">{{ $t('sendToTxt2img') }}</a-menu-item>
-                  <a-menu-item key="send2img2img">{{ $t('sendToImg2img') }}</a-menu-item>
-                  <a-menu-item key="send2inpaint">{{ $t('sendToInpaint') }}</a-menu-item>
-                  <a-menu-item key="send2extras">{{ $t('sendToExtraFeatures') }}</a-menu-item>
-                  <a-sub-menu key="sendToThirdPartyExtension" :title="$t('sendToThirdPartyExtension')">
-                    <a-menu-item key="send2controlnet-txt2img">ControlNet - {{ $t('t2i') }}</a-menu-item>
-                    <a-menu-item key="send2controlnet-img2img">ControlNet - {{ $t('i2i') }}</a-menu-item>
-                    <a-menu-item key="send2outpaint">openOutpaint</a-menu-item>
-                  </a-sub-menu>
+                  <template v-if="global.conf?.launch_mode === 'wan2gp'">
+                    <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
+                    <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
+                  </template>
+                  <template v-if="global.conf?.launch_mode === 'sd'">
+                    <a-menu-item key="send2txt2img">{{ $t('sendToTxt2img') }}</a-menu-item>
+                    <a-menu-item key="send2img2img">{{ $t('sendToImg2img') }}</a-menu-item>
+                    <a-menu-item key="send2inpaint">{{ $t('sendToInpaint') }}</a-menu-item>
+                    <a-menu-item key="send2extras">{{ $t('sendToExtraFeatures') }}</a-menu-item>
+                    <a-sub-menu key="sendToThirdPartyExtension" :title="$t('sendToThirdPartyExtension')">
+                      <a-menu-item key="send2controlnet-txt2img">ControlNet - {{ $t('t2i') }}</a-menu-item>
+                      <a-menu-item key="send2controlnet-img2img">ControlNet - {{ $t('i2i') }}</a-menu-item>
+                      <a-menu-item key="send2outpaint">openOutpaint</a-menu-item>
+                    </a-sub-menu>
+                  </template>
                 </template>
                 <a-menu-item key="send2BatchDownload">{{ $t('sendToBatchDownload') }}</a-menu-item>
                 <a-sub-menu key="copy2target" :title="$t('copyTo')">

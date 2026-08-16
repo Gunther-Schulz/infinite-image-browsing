@@ -406,7 +406,7 @@ const openMediaModalImpl = (
                 {{ default: t('setCurrFrameAsVideoPoster') }}
               </Button>
             )}
-            {mediaType === 'video' && global.conf?.launch_mode !== 'server' && (
+            {mediaType === 'video' && global.conf?.launch_mode === 'wan2gp' && (
               <Button onClick={() => {
                 const bus = new BroadcastChannel('iib-image-transfer-bus')
                 bus.postMessage({ event: 'wan2gp_load_settings', path: file.fullpath })

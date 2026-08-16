@@ -147,6 +147,7 @@ const restoreWorkspaceSnapshot = (item: Snapshot) => {
 
 const machine = computed(() => {
   if (isTauri) return 'desktop application'
+  if (global.conf?.launch_mode === 'wan2gp') return 'Wan2GP plugin'
   if ( global.conf?.launch_mode === 'sd') return 'sd-webui extension'
   return 'standalone'
 })
