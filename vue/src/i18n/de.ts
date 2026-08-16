@@ -229,6 +229,7 @@ export const de: Partial<IIBI18nMap> = {
   autoPlayMedia: 'Videos und Audio beim Öffnen automatisch starten',
   loopMedia: 'Videos und Audio am Ende wiederholen',
   autoHideVideoControls: 'Video-Steuerung während der Wiedergabe ausblenden, bis die Maus bewegt wird',
+  hideVideoControlScrim: 'Dunklen Verlauf hinter der Video-Steuerung ausblenden',
   searchResults: 'Suchergebnisse',
   imgSearch: 'Bildsuche',
   send2savedDir: 'In den gespeicherten Ordner senden',

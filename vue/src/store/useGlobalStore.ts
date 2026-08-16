@@ -223,6 +223,7 @@ export const presistKeys = [
   'autoPlayMedia',
   'loopMedia',
   'autoHideVideoControls',
+  'hideVideoControlScrim',
   'onlyFoldersAndImages',
   'fileTypeFilter',
   'shortcut',
@@ -362,6 +363,19 @@ export const useGlobalStore = defineStore(
     // Default OFF, rule 43: upstream shows controls permanently.
     const autoHideVideoControls = ref(false)
 
+    // Chromium paints a dark gradient behind the control bar so its white
+    // glyphs stay readable over any frame. On a video library that fade sits
+    // over the picture whenever the controls are up. Removing it is possible
+    // from page CSS - measured 2026-08-16 on an A/B page in this Chromium:
+    // ::-webkit-media-controls-panel { background: none } left the controls
+    // intact and the gradient gone.
+    //
+    // Two reasons this is a switch and not a fix: the pseudo-element is
+    // Chromium-private with no Firefox equivalent, so elsewhere it silently
+    // does nothing; and without the fade the glyphs can be hard to read over a
+    // pale frame. Default OFF, rule 43 - upstream paints the fade.
+    const hideVideoControlScrim = ref(false)
+
     const shortcut = ref<Shortcut>({
       delete: '',
       download: ''
@@ -499,6 +513,7 @@ export const useGlobalStore = defineStore(
       autoPlayMedia,
       loopMedia,
       autoHideVideoControls,
+      hideVideoControlScrim,
       openTagSearchMatchedImageGridInRight,
       onlyFoldersAndImages: ref(true), // 保留用于向后兼容
       fileTypeFilter: ref<('image' | 'video' | 'audio' | 'all')[]>(['image', 'video', 'audio']), // 新的多选过滤

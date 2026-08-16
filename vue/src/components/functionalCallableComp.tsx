@@ -312,10 +312,20 @@ const openMediaModalImpl = (
     if (idleTimer !== undefined) { clearTimeout(idleTimer); idleTimer = undefined }
   }
   const showControls = (el: HTMLVideoElement) => { el.controls = true }
-  const armIdleHide = (el: HTMLVideoElement) => {
+  // Input restarts the idle clock. Nothing else does.
+  const resetIdleHide = (el: HTMLVideoElement) => {
     clearIdleTimer()
     if (el.paused) return
     idleTimer = setTimeout(() => { if (!el.paused) el.controls = false }, IDLE_MS)
+  }
+  // A loop restart must NOT restart it. The clock measures time since the last
+  // input, not since the last play event: with the last mouse move at 9s of a
+  // 10s clip, the controls are due to go 1.5s into the next lap, not a fresh
+  // 2.5s after it - which is what the operator saw and correctly called wrong.
+  // So this only starts a clock when none is running.
+  const ensureIdleHide = (el: HTMLVideoElement) => {
+    if (idleTimer !== undefined) return
+    resetIdleHide(el)
   }
   // play/loop must ARM the timer without SHOWING anything. Per the HTML spec a
   // loop restart fires neither play nor pause - it seeks and carries on - but
@@ -325,7 +335,7 @@ const openMediaModalImpl = (
   const onVideoPlaying = (e: Event) => {
     if (!global.autoHideVideoControls) return
     const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
-    if (el) armIdleHide(el)
+    if (el) ensureIdleHide(el)
   }
   // Input is watched on the DOCUMENT, not on the <video>.
   //
@@ -345,7 +355,7 @@ const openMediaModalImpl = (
     const el = videoRef.value
     if (!el) return
     showControls(el)
-    armIdleHide(el)
+    resetIdleHide(el)
   }
   const activityEvents = ['pointermove', 'pointerdown', 'keydown', 'wheel'] as const
   const watchActivity = () => {
@@ -620,7 +630,7 @@ const openMediaModalImpl = (
             <>
               <video
                 ref={videoRef}
-                class="iib-media-modal-video"
+                class={['iib-media-modal-video', global.hideVideoControlScrim ? 'iib-media-video--no-scrim' : '']}
                 style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }}
                 src={toStreamVideoUrl(file)}
                 controls

@@ -207,6 +207,15 @@ ul.ant-dropdown-menu  {
   }
 }
 
+// The dark fade Chromium paints behind the control bar, removed. Opt-in via
+// hideVideoControlScrim: the fade is what keeps the white glyphs readable over
+// a pale frame, and these pseudo-elements are Chromium-private, so on another
+// engine the setting silently does nothing.
+.iib-media-video--no-scrim {
+  &::-webkit-media-controls-panel { background: none !important; }
+  &::-webkit-media-controls-enclosure { background: transparent !important; }
+}
+
 // Two-column layout for the video modal (functionalCallableComp.tsx). Video
 // only - stacks exactly as before below the breakpoint; only the split
 // (>=1200px) block below changes anything. --iib-media-panel-width and
