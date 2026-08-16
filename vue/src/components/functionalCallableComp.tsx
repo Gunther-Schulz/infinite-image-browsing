@@ -13,6 +13,7 @@ import { useTagStore } from '@/store/useTagStore'
 import { useGlobalStore } from '@/store/useGlobalStore'
 import { base64ToFile, video2base64 } from '@/util/video'
 import { closeImageFullscreenPreview } from '@/util/imagePreviewOperation'
+import { pairLoras, LoraRow } from '@/util/loras'
 
 export const openCreateFlodersModal = (base: string) => {
   const floderName = ref('')
@@ -59,6 +60,7 @@ const openMediaModalImpl = (
   const videoRef = ref<HTMLVideoElement | null>(null)
   const imageGenInfo = ref('')
   const promptLoading = ref(false)
+  const showAllMeta = ref(false)
 
   // 加载提示词
   const loadPrompt = async () => {
@@ -88,28 +90,54 @@ const openMediaModalImpl = (
   // 解析提示词结构
   const geninfoStruct = () => parse(imageGenInfo.value)
 
-  // The Meta table's rows: [label, value] pairs, ready to render.
+  interface MetaSections {
+    generation: [string, string][]
+    loras: LoraRow[]
+    timing: [string, string][]
+    rest: [string, string][]
+  }
+
+  // Which model made the clip, and how it was sampled - the fields you
+  // change between attempts.
+  const GENERATION_KEYS = [
+    'type', 'model_type', 'base_model_type', 'model_filename', 'model_mode',
+    'seed', 'steps', 'num_inference_steps', 'guidance_scale',
+    'guidance2_scale', 'guidance3_scale', 'guidance_phases',
+    'switch_threshold', 'switch_threshold2', 'flow_shift', 'sample_solver',
+    'denoising_strength', 'NAG_scale', 'NAG_tau', 'NAG_alpha',
+    'resolution', 'size', 'video_length', 'fps', 'num_frames', 'batch_size',
+  ]
+  // Provenance - useful, rarely the thing you came for.
+  const TIMING_KEYS = ['generation_time', 'creation_date', 'settings_version', 'video_quality']
+  // Consumed by the LoRAs table below (pairLoras), never shown as raw rows.
+  const LORA_KEYS = new Set(['activated_loras', 'loras_multipliers'])
+
+  // The meta block's rows, split into named sections instead of one flat
+  // table: which model & how it was sampled (Generation), LoRAs paired name
+  // to multiplier (its own table - see pairLoras, @/util/loras), timing /
+  // provenance (Timing), and everything else, alphabetical, collapsed behind
+  // a toggle so the panel isn't buried in housekeeping fields nobody asked
+  // for.
   //
-  // Two things this has to get right that a plain key/value dump did not.
-  // extraJsonMetaInfo is an OBJECT - the parser hands back the generator's
-  // full payload under that one key - so printing it directly gives
-  // "[object Object]" and hides everything in it; its entries are flattened in
-  // instead, which is the point of keeping it. And empty values are dropped:
-  // a row reading "Resources:" with nothing after it is the whole reason this
-  // panel looked broken rather than sparse.
-  const metaRows = (): [string, string][] => {
+  // Two things this still has to get right that a plain key/value dump did
+  // not. extraJsonMetaInfo is an OBJECT - the parser hands back the
+  // generator's full payload under that one key - so printing it directly
+  // gives "[object Object]" and hides everything in it; its entries are
+  // flattened in instead, which is the point of keeping it. And empty
+  // values are dropped: a row reading "Resources:" with nothing after it is
+  // the whole reason this panel looked broken rather than sparse.
+  const metaSections = (): MetaSections => {
     const skip = new Set(['prompt', 'negativePrompt', 'extraJsonMetaInfo'])
-    const rows: [string, string][] = []
     const seen = new Set<string>()
 
-    const push = (key: string, value: unknown) => {
+    const push = (bucket: [string, string][], key: string, value: unknown) => {
       if (value === null || value === undefined) return
       const text = typeof value === 'object' ? JSON.stringify(value) : String(value)
       if (!text.trim() || text === '{}' || text === '[]') return
       const label = key.charAt(0).toUpperCase() + key.slice(1)
       if (seen.has(label.toLowerCase())) return
       seen.add(label.toLowerCase())
-      rows.push([label, text])
+      bucket.push([label, text])
     }
 
     const struct = geninfoStruct() as Record<string, unknown>
@@ -126,54 +154,35 @@ const openMediaModalImpl = (
       }
     }
 
-    // Ordered by what a reader asks in sequence, not by what the file happened
-    // to store. The prompts have their own blocks above this table, so the
-    // first question about a clip is which model made it, then how it was
-    // sampled, then what came out, and only then the housekeeping. Grouped
-    // rather than one flat list so the reason for each position survives:
-    // move a name between groups to reorder it.
-    const PRIORITY = [
-      // Which model
-      'type', 'model_type', 'base_model_type', 'model_filename', 'model_mode',
-      // How it was sampled - the fields you change between attempts
-      'seed', 'steps', 'num_inference_steps', 'guidance_scale',
-      'guidance2_scale', 'guidance3_scale', 'guidance_phases',
-      'switch_threshold', 'switch_threshold2', 'flow_shift', 'sample_solver',
-      'denoising_strength', 'NAG_scale', 'NAG_tau', 'NAG_alpha',
-      // What came out
-      'resolution', 'size', 'video_length', 'fps', 'video_quality',
-      'num_frames', 'batch_size',
-      // LoRAs, which are the usual reason two clips differ
-      'lset_name', 'activated_loras', 'loras_multipliers',
-      // Other prompt inputs, the main ones having their own blocks above
-      'alt_prompt', 'prompt_enhancer', 'image_prompt_type',
-      'video_prompt_type', 'audio_prompt_type',
-      // Long-video windowing
-      'sliding_window_size', 'sliding_window_overlap',
-      'sliding_window_overlap_noise', 'sliding_window_discard_last_frames',
-      'repeat_generation', 'multi_prompts_gen_type',
-      // Post-processing
-      'temporal_upsampling', 'spatial_upsampling', 'film_grain_intensity',
-      'film_grain_saturation',
-      // Provenance - useful, rarely the thing you came for
-      'generation_time', 'creation_date', 'settings_version',
-    ]
-    const rank = (key: string) => {
-      const i = PRIORITY.indexOf(key.toLowerCase())
-      return i === -1 ? PRIORITY.length : i
+    // First occurrence wins - top-level keys are collected before the
+    // flattened extraJsonMetaInfo entries, so a name present in both keeps
+    // its top-level value, same as the old single-pass push order did.
+    const byKey = new Map<string, unknown>()
+    for (const [key, value] of collected) {
+      if (!byKey.has(key)) byKey.set(key, value)
     }
-    // Unlisted keys go last, alphabetically. Arrival order would be arbitrary
-    // to the reader, and the tail is where the forty fields nobody named end
-    // up - alphabetical at least makes one findable by name.
-    collected.sort((a, b) => {
-      const d = rank(a[0]) - rank(b[0])
-      if (d !== 0) return d
-      if (rank(a[0]) < PRIORITY.length) return 0   // both listed: keep the list's order
-      return a[0].localeCompare(b[0])
-    })
 
-    for (const [key, value] of collected) push(key, value)
-    return rows
+    const generation: [string, string][] = []
+    for (const key of GENERATION_KEYS) {
+      if (byKey.has(key)) push(generation, key, byKey.get(key))
+    }
+
+    const loras = pairLoras(byKey.get('activated_loras'), byKey.get('loras_multipliers'))
+
+    const timing: [string, string][] = []
+    for (const key of TIMING_KEYS) {
+      if (byKey.has(key)) push(timing, key, byKey.get(key))
+    }
+
+    // Everything not claimed by a named section above. Arrival order would
+    // be arbitrary to the reader, and this is where the forty fields nobody
+    // named end up - alphabetical at least makes one findable by name.
+    const claimed = new Set<string>([...GENERATION_KEYS, ...TIMING_KEYS, ...LORA_KEYS])
+    const restKeys = [...byKey.keys()].filter(k => !claimed.has(k)).sort((a, b) => a.localeCompare(b))
+    const rest: [string, string][] = []
+    for (const key of restKeys) push(rest, key, byKey.get(key))
+
+    return { generation, loras, timing, rest }
   }
 
   // 计算文本长度（中文算3个字符）
@@ -372,14 +381,17 @@ const openMediaModalImpl = (
                 <code style={{ fontSize: '13px', display: 'block', padding: '10px 12px', background: 'var(--zp-primary-background)', borderRadius: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.6em' }} innerHTML={spanWrap(geninfoStruct().negativePrompt ?? '')}></code>
               </div>
             )}
-            {/* Meta 信息 */}
-            {metaRows().length > 0 && (
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Meta</div>
+            {(() => {
+              const sections = metaSections()
+              const hasMeta = sections.generation.length > 0 || sections.loras.length > 0 ||
+                sections.timing.length > 0 || sections.rest.length > 0
+              if (!hasMeta) return null
+
+              const renderKvTable = (rows: [string, string][]) => (
                 <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
                     <tbody>
-                      {metaRows().map(([key, value], i) => (
+                      {rows.map(([key, value], i) => (
                         <tr key={key} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
                           <td style={{ padding: '5px 10px', width: '38%', color: 'var(--zp-primary)', opacity: 0.65, verticalAlign: 'top', wordBreak: 'break-word' }}>{key}</td>
                           <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{value}</td>
@@ -388,8 +400,53 @@ const openMediaModalImpl = (
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
+              )
+
+              return (
+                <div style={{ alignSelf: 'center' }}>
+                  {sections.generation.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionGeneration')}</div>
+                      {renderKvTable(sections.generation)}
+                    </div>
+                  )}
+                  {sections.loras.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionLoras')}</div>
+                      <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
+                          <tbody>
+                            {sections.loras.map((row, i) => (
+                              <tr key={row.name} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
+                                <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', wordBreak: 'break-word' }}>{row.name}</td>
+                                <td style={{ padding: '5px 10px', width: '1%', whiteSpace: 'nowrap', color: 'var(--zp-primary)', verticalAlign: 'top' }}>x{row.multiplier}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                  {sections.timing.length > 0 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionTiming')}</div>
+                      {renderKvTable(sections.timing)}
+                    </div>
+                  )}
+                  {sections.rest.length > 0 && (
+                    <div>
+                      <div
+                        style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px', cursor: 'pointer', userSelect: 'none' }}
+                        onClick={() => { showAllMeta.value = !showAllMeta.value }}
+                      >
+                        {t('metaSectionEverythingElse')} - {showAllMeta.value ? t('metaHide') : `${t('metaShowAll')} (${sections.rest.length})`}
+                      </div>
+                      {showAllMeta.value && renderKvTable(sections.rest)}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         ) : null}
       </div>
