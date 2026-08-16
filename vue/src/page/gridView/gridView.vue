@@ -53,7 +53,8 @@ watchEffect(() => {
       <template v-slot="{ item: file, index: idx }">
         <file-item :idx="idx" :file="file" :cell-width="cellWidth" :enable-close-icon="props.removable"
           @close-icon-click="onDeleteClick(idx)" :full-screen-preview-image-url="toImageUrl(file)"
-          :extra-tags="file?.tags?.map(tag.tagConvert)" :enable-right-click-menu="false" />
+          :extra-tags="file?.tags?.map(tag.tagConvert)" :enable-right-click-menu="false"
+          :siblings="() => files" />
       </template>
     </RecycleScroller>
   </div>

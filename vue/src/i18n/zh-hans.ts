@@ -206,6 +206,8 @@ export const zhHans = {
   viewGenerationInfo: '查看生成信息(prompt等)',
   sendSettingsToVideoGenerator: '发送设置到视频生成器',
   settingsSentToVideoGenerator: '设置已发送到视频生成器',
+  previousMedia: '上一个',
+  nextMedia: '下一个',
   sendAsStartImage: '添加为起始图',
   startImageSentToVideoGenerator: '已作为起始图发送',
   metaSectionGeneration: '生成',

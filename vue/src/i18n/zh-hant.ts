@@ -212,6 +212,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   viewGenerationInfo: '檢視生成信息(提示等)',
   sendSettingsToVideoGenerator: '發送設定到影片生成器',
   settingsSentToVideoGenerator: '設定已發送到影片生成器',
+  previousMedia: '上一個',
+  nextMedia: '下一個',
   sendAsStartImage: '新增為起始圖',
   startImageSentToVideoGenerator: '已作為起始圖發送',
   metaSectionGeneration: '生成',

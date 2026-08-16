@@ -5,6 +5,7 @@ import { fallbackImage, ok } from 'vue3-ts-util'
 import type { FileNodeInfo } from '@/api/files'
 import { isImageFile, isVideoFile, isAudioFile } from '@/util'
 import { toImageThumbnailUrl, toVideoCoverUrl, toRawFileUrl } from '@/util/file'
+import { nextMediaIndex } from '@/util/mediaNav'
 import type { MenuInfo } from 'ant-design-vue/lib/menu/src/interface'
 import { computed, ref, nextTick, watch } from 'vue'
 import ContextMenu from './ContextMenu.vue'
@@ -44,6 +45,10 @@ const props = withDefaults(
     coverFiles?: Top4MediaInfo[]
     getGenDiff?: (ownGenInfo: any, idx: any, increment: any, ownFile: FileNodeInfo) => GenDiffInfo,
     getGenDiffWatchDep?: (idx: number) => any
+    // A getter, not an array: only evaluated when the operator actually
+    // navigates the video modal, so nothing is copied per rendered cell.
+    // Grids that don't pass this simply don't get prev/next arrows.
+    siblings?: () => FileNodeInfo[]
   }>(),
   {
     selected: false, enableRightClickMenu: true, enableCloseIcon: false
@@ -225,7 +230,15 @@ const handleVideoClick = () => {
     openVideoModal(
       props.file,
       (id) => emit('contextMenuClick', { key: `toggle-tag-${id}` } as any, props.file, props.idx),
-      () => emit('tiktokView', props.file, props.idx)
+      () => emit('tiktokView', props.file, props.idx),
+      props.siblings ? {
+        idx: props.idx,
+        at: (from: number, dir: 1 | -1) => {
+          const list = props.siblings!()
+          const i = nextMediaIndex(list, from, dir)
+          return i === undefined ? undefined : { file: list[i], idx: i }
+        }
+      } : undefined
     )
   }
 }

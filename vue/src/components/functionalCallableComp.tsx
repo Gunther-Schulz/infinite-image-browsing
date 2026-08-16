@@ -6,7 +6,7 @@ import { setTargetFrameAsCover, getImageGenerationInfo } from '@/api'
 import { parse } from '@/util/stable-diffusion-image-metadata'
 import { t } from '@/i18n'
 import { downloadFiles, globalEvents, toRawFileUrl, toStreamVideoUrl, toStreamAudioUrl } from '@/util'
-import { DownloadOutlined, FileTextOutlined, EditOutlined } from '@/icon'
+import { DownloadOutlined, FileTextOutlined, EditOutlined, LeftOutlined, RightOutlined } from '@/icon'
 import { isStandalone } from '@/util/env'
 import { addCustomTag, getDbBasicInfo, rebuildImageIndex, renameFile } from '@/api/db'
 import { useTagStore } from '@/store/useTagStore'
@@ -45,12 +45,23 @@ export const MultiSelectTips = () => (
   </p>
 )
 
+// Prev/next navigation handed to the modal by whichever grid opened it (see
+// FileItem's `siblings` prop). `idx` is the currently-open file's position
+// in that grid's list; `at` looks up the neighbour in a direction, skipping
+// non-media entries (nextMediaIndex, @/util/mediaNav), and returns undefined
+// at either end.
+export interface MediaNav {
+  idx: number
+  at: (from: number, dir: 1 | -1) => { file: FileNodeInfo; idx: number } | undefined
+}
+
 // 合并的视频/音频 modal 实现
 const openMediaModalImpl = (
   file: FileNodeInfo,
   onTagClick?: (id: string| number) => void,
   onTiktokView?: () => void,
-  mediaType: 'video' | 'audio' = 'video'
+  mediaType: 'video' | 'audio' = 'video',
+  nav?: MediaNav
 ) => {
   const tagStore = useTagStore()
   const global = useGlobalStore()
@@ -277,6 +288,44 @@ const openMediaModalImpl = (
     modal.destroy()
   }
 
+  // Navigating closes this modal and opens a fresh one for the neighbour
+  // file, rather than mutating the current one in place. This component
+  // closes over `file` and holds prompt-loading state, a videoRef and tag
+  // state that all belong to that one file; making all of that reactive to
+  // an in-place file swap would be a much larger change than reopening is.
+  const goTo = (dir: 1 | -1) => {
+    if (!nav) return
+    const next = nav.at(nav.idx, dir)
+    if (!next) return
+    modal.destroy()
+    openMediaModalImpl(next.file, onTagClick, onTiktokView, mediaType, { ...nav, idx: next.idx })
+  }
+
+  const isTypingTarget = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null
+    if (!el) return false
+    const tag = el.tagName
+    // A focused <video> already uses arrow keys to seek; stealing them here
+    // would break the player's own controls. Inputs/textareas get the same
+    // pass-through for the obvious reason.
+    return tag === 'VIDEO' || tag === 'INPUT' || tag === 'TEXTAREA'
+  }
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (!nav || isTypingTarget(e.target)) return
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      goTo(-1)
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      goTo(1)
+    }
+  }
+
+  if (nav) {
+    window.addEventListener('keydown', onKeyDown)
+  }
+
   const modal = Modal.confirm({
     width: mediaType === 'video' ? '80vw' : '70vw',
     title: file.name,
@@ -315,6 +364,22 @@ const openMediaModalImpl = (
 
           {/* 操作按钮 */}
           <div class="actions" style={{ marginTop: '16px' }}>
+            {nav && (
+              <Button onClick={() => goTo(-1)} disabled={!nav.at(nav.idx, -1)}>
+                {{
+                  icon: <LeftOutlined/>,
+                  default: t('previousMedia')
+                }}
+              </Button>
+            )}
+            {nav && (
+              <Button onClick={() => goTo(1)} disabled={!nav.at(nav.idx, 1)}>
+                {{
+                  icon: <RightOutlined/>,
+                  default: t('nextMedia')
+                }}
+              </Button>
+            )}
             <Button onClick={() => downloadFiles([toRawFileUrl(file, true)])}>
               {{
                 icon: <DownloadOutlined/>,
@@ -488,21 +553,28 @@ const openMediaModalImpl = (
       )
     },
     maskClosable: true,
-    wrapClassName: 'hidden-antd-btns-modal'
+    wrapClassName: 'hidden-antd-btns-modal',
+    afterClose: () => {
+      if (nav) {
+        window.removeEventListener('keydown', onKeyDown)
+      }
+    }
   })
 }
 
 export const openVideoModal = (
   file: FileNodeInfo,
   onTagClick?: (id: string| number) => void,
-  onTiktokView?: () => void
-) => openMediaModalImpl(file, onTagClick, onTiktokView, 'video')
+  onTiktokView?: () => void,
+  nav?: MediaNav
+) => openMediaModalImpl(file, onTagClick, onTiktokView, 'video', nav)
 
 export const openAudioModal = (
   file: FileNodeInfo,
   onTagClick?: (id: string| number) => void,
-  onTiktokView?: () => void
-) => openMediaModalImpl(file, onTagClick, onTiktokView, 'audio')
+  onTiktokView?: () => void,
+  nav?: MediaNav
+) => openMediaModalImpl(file, onTagClick, onTiktokView, 'audio', nav)
 
 export const openRebuildImageIndexModal = () => {
   Modal.confirm({

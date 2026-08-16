@@ -397,7 +397,8 @@ onMounted(() => {
               :get-gen-diff="getGenDiff"
               :get-gen-diff-watch-dep="getGenDiffWatchDep"
               :previewing="previewing"
-              :cover-files="dirCoverCache.get(file.fullpath)"/>
+              :cover-files="dirCoverCache.get(file.fullpath)"
+              :siblings="() => sortedFiles"/>
           </template>
           <template #after>
             <div style="padding: 16px 0 512px;">

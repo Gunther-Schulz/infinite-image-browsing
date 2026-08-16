@@ -183,6 +183,8 @@ export const de: Partial<IIBI18nMap> = {
   viewGenerationInfo: 'Anzeige von Generierungsinformationen (Prompt, etc.)',
   sendSettingsToVideoGenerator: 'Einstellungen an Videogenerator senden',
   settingsSentToVideoGenerator: 'Einstellungen an den Videogenerator gesendet',
+  previousMedia: 'Zurück',
+  nextMedia: 'Weiter',
   sendAsStartImage: 'Als Startbild hinzufügen',
   startImageSentToVideoGenerator: 'Als Startbild gesendet',
   metaSectionGeneration: 'Generierung',
