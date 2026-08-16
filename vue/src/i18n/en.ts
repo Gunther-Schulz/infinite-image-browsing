@@ -441,7 +441,7 @@ You can specify which snapshot to restore to when starting IIB in the global set
   longPressOpenContextMenu: 'Support long press to open right-click menu',
   autoPlayMedia: 'Start videos and audio automatically when opened',
   loopMedia: 'Repeat videos and audio when they reach the end',
-  hoverVideoControls: 'Show video controls only while the pointer is over the video',
+  autoHideVideoControls: 'Hide video controls while playing until the mouse moves',
   searchResults: 'Search Results',
   imgSearch: 'Image Search',
   onlyFoldersAndImages: 'Only show folders/images/videos',

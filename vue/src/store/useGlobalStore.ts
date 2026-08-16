@@ -222,7 +222,7 @@ export const presistKeys = [
   'longPressOpenContextMenu',
   'autoPlayMedia',
   'loopMedia',
-  'hoverVideoControls',
+  'autoHideVideoControls',
   'onlyFoldersAndImages',
   'fileTypeFilter',
   'shortcut',
@@ -352,15 +352,15 @@ export const useGlobalStore = defineStore(
     // a deployment that wants looping turns it on, here or from the launcher.
     const loopMedia = ref(false)
 
-    // Chromium hides the control bar only after a few seconds of pointer
-    // inactivity DURING playback. Wan2GP clips run a few seconds and are
-    // usually looping with the pointer still over the frame, so that moment
-    // never arrives and the bar - with its dark scrim - sits on the picture
-    // permanently. With this on, the controls follow the POINTER instead of a
-    // timer: off the frame, nothing; on it, the full native set.
+    // Hide the video controls after a spell of no input, and restore them on
+    // any. Chromium has its own inactivity timer; on short looping clips in
+    // FULLSCREEN it never seems to reach the operator, and the bar with its
+    // dark scrim sits on the picture the whole time. Fullscreen also rules out
+    // hiding on pointer-exit - the video is the whole screen, so there is
+    // nowhere to exit to. Stillness is the signal that works in both places.
     //
     // Default OFF, rule 43: upstream shows controls permanently.
-    const hoverVideoControls = ref(false)
+    const autoHideVideoControls = ref(false)
 
     const shortcut = ref<Shortcut>({
       delete: '',
@@ -498,7 +498,7 @@ export const useGlobalStore = defineStore(
       longPressOpenContextMenu,
       autoPlayMedia,
       loopMedia,
-      hoverVideoControls,
+      autoHideVideoControls,
       openTagSearchMatchedImageGridInRight,
       onlyFoldersAndImages: ref(true), // 保留用于向后兼容
       fileTypeFilter: ref<('image' | 'video' | 'audio' | 'all')[]>(['image', 'video', 'audio']), // 新的多选过滤

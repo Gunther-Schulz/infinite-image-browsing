@@ -289,18 +289,46 @@ const openMediaModalImpl = (
   // 加载提示词
   loadPrompt()
 
-  // Controls that follow the pointer instead of Chromium's inactivity timer.
-  // Set on the ELEMENT rather than through a reactive prop: the modal's content
-  // is a render function, and re-rendering it on every mouse cross would tear
-  // down and rebuild the <video>, restarting playback. Toggling the property
-  // leaves the element - and the playhead - alone.
+  // Hide the controls after a spell of no input, and bring them back on any.
   //
-  // Only when the setting is on. Off, the attribute above is already true and
-  // these handlers write the value it already has.
-  const onVideoPointer = (inside: boolean) => (e: MouseEvent) => {
-    if (!global.hoverVideoControls) return
-    const el = e.currentTarget as HTMLVideoElement | null
-    if (el) el.controls = inside
+  // Chromium has its own inactivity timer, but on these clips it never seems to
+  // reach the operator: the videos run a few seconds, usually looping, and in
+  // FULLSCREEN the control bar with its dark scrim sits on the picture the
+  // whole time. Fullscreen is also what rules out the obvious alternative -
+  // hiding the controls when the pointer leaves the video - because the video
+  // is the whole screen and there is nowhere for the pointer to go.
+  //
+  // Stillness works everywhere the pointer does not: playing plus no input for
+  // IDLE_MS hides, any input shows. Paused always shows, or a paused clip would
+  // have no visible way to resume.
+  //
+  // Set on the ELEMENT rather than through a reactive prop: the modal's content
+  // is a render function, and re-rendering on every mouse move would rebuild
+  // the <video> and restart playback. Toggling the property leaves the playhead
+  // alone.
+  const IDLE_MS = 2500
+  let idleTimer: ReturnType<typeof setTimeout> | undefined
+  const clearIdleTimer = () => {
+    if (idleTimer !== undefined) { clearTimeout(idleTimer); idleTimer = undefined }
+  }
+  const showControls = (el: HTMLVideoElement) => { el.controls = true }
+  const armIdleHide = (el: HTMLVideoElement) => {
+    clearIdleTimer()
+    if (el.paused) return
+    idleTimer = setTimeout(() => { if (!el.paused) el.controls = false }, IDLE_MS)
+  }
+  const onVideoActivity = (e: Event) => {
+    if (!global.autoHideVideoControls) return
+    const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
+    if (!el) return
+    showControls(el)
+    armIdleHide(el)
+  }
+  const onVideoPause = (e: Event) => {
+    if (!global.autoHideVideoControls) return
+    clearIdleTimer()
+    const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
+    if (el) showControls(el)
   }
 
   const onTiktokViewWrapper = () => {
@@ -563,11 +591,14 @@ const openMediaModalImpl = (
                 class="iib-media-modal-video"
                 style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }}
                 src={toStreamVideoUrl(file)}
-                controls={global.hoverVideoControls ? undefined : true}
+                controls
                 autoplay={(forcePlay || global.autoPlayMedia) || undefined}
                 loop={global.loopMedia || undefined}
-                onMouseenter={onVideoPointer(true)}
-                onMouseleave={onVideoPointer(false)}
+                onMousemove={onVideoActivity}
+                onKeydown={onVideoActivity}
+                onTouchstart={onVideoActivity}
+                onPlay={onVideoActivity}
+                onPause={onVideoPause}
               ></video>
               <div class="iib-media-modal-right">
                 {sidePanel}
@@ -586,6 +617,7 @@ const openMediaModalImpl = (
     maskClosable: true,
     wrapClassName: 'hidden-antd-btns-modal',
     afterClose: () => {
+      clearIdleTimer()
       if (nav) {
         window.removeEventListener('keydown', onKeyDown)
       }
