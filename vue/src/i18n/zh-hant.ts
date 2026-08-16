@@ -233,9 +233,9 @@ export const zhHant: Partial<IIBI18nMap> = {
   openInNewWindow: '在新頁面打開',
   restoreLastRecord: '還原上次記錄',
   launch: '啟動',
-  walkMode: '使用 Walk 模式瀏覽圖片',
+  walkMode: '使用 Walk 模式瀏覽檔案',
 
-  launchFromNormalAndFixed: '使用 Normal / Fixed 模式瀏覽圖片',
+  launchFromNormalAndFixed: '使用 Normal / Fixed 模式瀏覽檔案',
   recent: '最近',
   emptyStartPage: '空啟動頁',
   t2i: '文生圖',

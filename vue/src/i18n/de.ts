@@ -203,7 +203,7 @@ export const de: Partial<IIBI18nMap> = {
   openInNewWindow: 'In neuem Fenster öffnen',
   restoreLastRecord: 'Letztes Verzeichnis wiederherstellen',
   launch: 'Ausführen',
-  walkMode: 'Verwende den Walk-Modus, um Bilder zu durchsuchen',
+  walkMode: 'Verwende den Walk-Modus, um Dateien zu durchsuchen',
   recent: 'Kürzlich',
   emptyStartPage: 'Leere Startseite',
   t2i: 'Text-zu-Bild',
