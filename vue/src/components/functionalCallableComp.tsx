@@ -93,6 +93,7 @@ const openMediaModalImpl = (
   interface MetaSections {
     generation: [string, string][]
     loras: LoraRow[]
+    lsetName: string
     timing: [string, string][]
     rest: [string, string][]
   }
@@ -109,8 +110,12 @@ const openMediaModalImpl = (
   ]
   // Provenance - useful, rarely the thing you came for.
   const TIMING_KEYS = ['generation_time', 'creation_date', 'settings_version', 'video_quality']
-  // Consumed by the LoRAs table below (pairLoras), never shown as raw rows.
-  const LORA_KEYS = new Set(['activated_loras', 'loras_multipliers'])
+  // Consumed by the LoRAs section below, never shown as raw rows.
+  // activated_loras and loras_multipliers become the paired table (pairLoras);
+  // lset_name is the name of the LoRA SET those came from, so it belongs
+  // beside them rather than alphabetically among the housekeeping fields -
+  // it answers "which preset was this" about the very rows underneath it.
+  const LORA_KEYS = new Set(['activated_loras', 'loras_multipliers', 'lset_name'])
 
   // The meta block's rows, split into named sections instead of one flat
   // table: which model & how it was sampled (Generation), LoRAs paired name
@@ -182,7 +187,10 @@ const openMediaModalImpl = (
     const rest: [string, string][] = []
     for (const key of restKeys) push(rest, key, byKey.get(key))
 
-    return { generation, loras, timing, rest }
+    const rawLset = byKey.get('lset_name')
+    const lsetName = typeof rawLset === 'string' ? rawLset.trim() : ''
+
+    return { generation, loras, lsetName, timing, rest }
   }
 
   // 计算文本长度（中文算3个字符）
@@ -384,6 +392,7 @@ const openMediaModalImpl = (
             {(() => {
               const sections = metaSections()
               const hasMeta = sections.generation.length > 0 || sections.loras.length > 0 ||
+                sections.lsetName.length > 0 ||
                 sections.timing.length > 0 || sections.rest.length > 0
               if (!hasMeta) return null
 
@@ -410,9 +419,13 @@ const openMediaModalImpl = (
                       {renderKvTable(sections.generation)}
                     </div>
                   )}
-                  {sections.loras.length > 0 && (
+                  {(sections.loras.length > 0 || sections.lsetName) && (
                     <div style={{ marginBottom: '12px' }}>
                       <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionLoras')}</div>
+                      {sections.lsetName && (
+                        <div style={{ fontSize: '12px', color: 'var(--zp-secondary)', marginBottom: '6px' }}>{sections.lsetName}</div>
+                      )}
+                      {sections.loras.length > 0 && (
                       <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
                           <tbody>
@@ -425,6 +438,7 @@ const openMediaModalImpl = (
                           </tbody>
                         </table>
                       </div>
+                      )}
                     </div>
                   )}
                   {sections.timing.length > 0 && (
