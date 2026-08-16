@@ -544,7 +544,7 @@ const openMediaModalImpl = (
         >
           {mediaType === 'video' ? (
             <>
-              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined}></video>
+              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined} loop={global.loopMedia || undefined}></video>
               <div class="iib-media-modal-right">
                 {sidePanel}
               </div>
@@ -552,7 +552,7 @@ const openMediaModalImpl = (
           ) : (
             <>
               <div style={{ fontSize: '80px', marginBottom: '16px' }}>🎵</div>
-              <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined}></audio>
+              <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined} loop={global.loopMedia || undefined}></audio>
               {sidePanel}
             </>
           )}

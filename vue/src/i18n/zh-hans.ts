@@ -249,6 +249,7 @@ export const zhHans = {
   openWithWalkMode: '使用 Walk 模式打开',
   longPressOpenContextMenu: '支持使用长按打开右键菜单',
   autoPlayMedia: '打开时自动播放视频和音频',
+  loopMedia: '视频和音频播放结束后循环',
   searchResults: '搜索结果',
   imgSearch: '图像搜索',
   onlyFoldersAndImages: '只显示文件夹/图像/视频',

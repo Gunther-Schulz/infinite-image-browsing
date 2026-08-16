@@ -221,6 +221,7 @@ export const presistKeys = [
   'gridThumbnailResolution',
   'longPressOpenContextMenu',
   'autoPlayMedia',
+  'loopMedia',
   'onlyFoldersAndImages',
   'fileTypeFilter',
   'shortcut',
@@ -344,6 +345,11 @@ export const useGlobalStore = defineStore(
     // app's default is what this comment exists to prevent a future reader
     // from redoing.
     const autoPlayMedia = ref(true)
+
+    // Default OFF, which is upstream's behaviour: its <video> and <audio>
+    // carry no loop attribute. Rule 43 - the app keeps what upstream does and
+    // a deployment that wants looping turns it on, here or from the launcher.
+    const loopMedia = ref(false)
 
     const shortcut = ref<Shortcut>({
       delete: '',
@@ -480,6 +486,7 @@ export const useGlobalStore = defineStore(
       gridThumbnailResolution,
       longPressOpenContextMenu,
       autoPlayMedia,
+      loopMedia,
       openTagSearchMatchedImageGridInRight,
       onlyFoldersAndImages: ref(true), // 保留用于向后兼容
       fileTypeFilter: ref<('image' | 'video' | 'audio' | 'all')[]>(['image', 'video', 'audio']), // 新的多选过滤

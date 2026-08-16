@@ -256,6 +256,7 @@ export const zhHant: Partial<IIBI18nMap> = {
   openWithWalkMode: '使用 Walk 模式打開',
   longPressOpenContextMenu: '支持使用長按打開右鍵功能表',
   autoPlayMedia: '開啟時自動播放影片和音訊',
+  loopMedia: '影片和音訊播放結束後循環',
   searchResults: '搜尋結果',
   imgSearch: '圖片搜尋',
   onlyFoldersAndImages: '只顯示文件夾/圖片/視頻',

@@ -231,6 +231,9 @@ const presetShortcutGroups = computed(() => ([
       <a-form-item :label="$t('autoPlayMedia')">
         <a-switch v-model:checked="globalStore.autoPlayMedia" />
       </a-form-item>
+      <a-form-item :label="$t('loopMedia')">
+        <a-switch v-model:checked="globalStore.loopMedia" />
+      </a-form-item>
       <a-form-item :label="$t('openOnAppStart')">
         <search-select v-model:value="globalStore.defaultInitinalPage" :options="defaultInitinalPageOptions" />
       </a-form-item>

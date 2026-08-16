@@ -438,6 +438,7 @@ You can specify which snapshot to restore to when starting IIB in the global set
   openWithWalkMode: 'Open with Walk Mode',
   longPressOpenContextMenu: 'Support long press to open right-click menu',
   autoPlayMedia: 'Start videos and audio automatically when opened',
+  loopMedia: 'Repeat videos and audio when they reach the end',
   searchResults: 'Search Results',
   imgSearch: 'Image Search',
   onlyFoldersAndImages: 'Only show folders/images/videos',
