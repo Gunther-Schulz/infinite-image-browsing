@@ -317,6 +317,16 @@ const openMediaModalImpl = (
     if (el.paused) return
     idleTimer = setTimeout(() => { if (!el.paused) el.controls = false }, IDLE_MS)
   }
+  // play/loop must ARM the timer without SHOWING anything. Per the HTML spec a
+  // loop restart fires neither play nor pause - it seeks and carries on - but
+  // this does not depend on that: if some browser did fire play each cycle, a
+  // handler that showed the controls would flash them back on every loop, which
+  // is precisely the complaint. Only real input shows them.
+  const onVideoPlaying = (e: Event) => {
+    if (!global.autoHideVideoControls) return
+    const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
+    if (el) armIdleHide(el)
+  }
   const onVideoActivity = (e: Event) => {
     if (!global.autoHideVideoControls) return
     const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
@@ -597,7 +607,7 @@ const openMediaModalImpl = (
                 onMousemove={onVideoActivity}
                 onKeydown={onVideoActivity}
                 onTouchstart={onVideoActivity}
-                onPlay={onVideoActivity}
+                onPlay={onVideoPlaying}
                 onPause={onVideoPause}
               ></video>
               <div class="iib-media-modal-right">
