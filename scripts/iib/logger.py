@@ -34,3 +34,19 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 if is_dev:
     logger.addHandler(console_handler)
+
+# Console output is opt-in above - and propagation was quietly undoing that.
+# Records climb to the ROOT logger unless this is switched off, and whichever
+# dependency in a host application calls logging.basicConfig() puts a handler
+# there. Every path this logger walks then lands on the host's stdout, prompt
+# text and all.
+#
+# The console lines are identifiable as propagated rather than ours by their
+# FORMAT: "INFO:scripts.iib.logger:..." is logging.BASIC_FORMAT
+# ("%(levelname)s:%(name)s:%(message)s"), which only basicConfig's handler
+# writes. Both handlers above use the "asctime - name - levelname - message"
+# formatter, so a line in the other shape never came from either of them.
+#
+# Turning propagation off leaves both handlers untouched: the file still gets
+# everything, and APP_ENV=dev still gets the console.
+logger.propagate = False
