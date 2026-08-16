@@ -327,12 +327,34 @@ const openMediaModalImpl = (
     const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
     if (el) armIdleHide(el)
   }
-  const onVideoActivity = (e: Event) => {
+  // Input is watched on the DOCUMENT, not on the <video>.
+  //
+  // Element-level listeners looked right and did not work: in fullscreen the
+  // operator saw the controls hide when a loop restarted - the onPlay path
+  // above - and then never again after moving the mouse, until the next
+  // restart. That is exactly the signature of the movement never reaching this
+  // handler, leaving onPlay as the only thing arming the timer. The native
+  // control bar is a shadow-DOM overlay sitting on top of the video, so
+  // pointer movement across the part of the screen that matters most is not
+  // reliably the video element's own event to hear.
+  //
+  // The document hears it either way, in fullscreen and out, and the video is
+  // resolved through videoRef rather than the event target.
+  const onVideoActivity = () => {
     if (!global.autoHideVideoControls) return
-    const el = (e.currentTarget ?? videoRef.value) as HTMLVideoElement | null
+    const el = videoRef.value
     if (!el) return
     showControls(el)
     armIdleHide(el)
+  }
+  const activityEvents = ['pointermove', 'pointerdown', 'keydown', 'wheel'] as const
+  const watchActivity = () => {
+    activityEvents.forEach(name =>
+      document.addEventListener(name, onVideoActivity, { passive: true }))
+  }
+  const unwatchActivity = () => {
+    activityEvents.forEach(name =>
+      document.removeEventListener(name, onVideoActivity))
   }
   const onVideoPause = (e: Event) => {
     if (!global.autoHideVideoControls) return
@@ -604,9 +626,6 @@ const openMediaModalImpl = (
                 controls
                 autoplay={(forcePlay || global.autoPlayMedia) || undefined}
                 loop={global.loopMedia || undefined}
-                onMousemove={onVideoActivity}
-                onKeydown={onVideoActivity}
-                onTouchstart={onVideoActivity}
                 onPlay={onVideoPlaying}
                 onPause={onVideoPause}
               ></video>
@@ -628,11 +647,18 @@ const openMediaModalImpl = (
     wrapClassName: 'hidden-antd-btns-modal',
     afterClose: () => {
       clearIdleTimer()
+      unwatchActivity()
       if (nav) {
         window.removeEventListener('keydown', onKeyDown)
       }
     }
   })
+
+  // Only for video, and only once the modal exists: audio has no frame to
+  // uncover, and document listeners with no modal open would be a leak.
+  if (mediaType === 'video') {
+    watchActivity()
+  }
 }
 
 export const openVideoModal = (
