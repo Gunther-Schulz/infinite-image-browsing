@@ -185,7 +185,7 @@ export const de: Partial<IIBI18nMap> = {
   settingsSentToVideoGenerator: 'Einstellungen an den Videogenerator gesendet',
   previousMedia: 'Zurück',
   nextMedia: 'Weiter',
-  sendAsStartImage: 'Als Startbild hinzufügen',
+  sendAsStartImage: 'Als Video-Startbild hinzufügen',
   startImageSentToVideoGenerator: 'Als Startbild gesendet',
   metaSectionGeneration: 'Generierung',
   metaSectionLoras: 'LoRAs',
