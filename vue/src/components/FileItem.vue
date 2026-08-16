@@ -212,7 +212,9 @@ const handleFileClick = (event: MouseEvent) => {
 }
 
 // 处理视频点击事件
-const handleVideoClick = () => {
+// forcePlay is true only when the play badge itself was clicked - see the
+// badge in the template. Everything else keeps the autoplay setting.
+const handleVideoClick = (forcePlay = false) => {
   // 如果正在原地播放，先停止播放
   if (isPlayingInline.value) {
     isPlayingInline.value = false
@@ -238,7 +240,8 @@ const handleVideoClick = () => {
           const i = nextMediaIndex(list, from, dir)
           return i === undefined ? undefined : { file: list[i], idx: i }
         }
-      } : undefined
+      } : undefined,
+      forcePlay
     )
   }
 }
@@ -323,7 +326,7 @@ const handleAudioClick = () => {
         </div>
         <div :class="[`idx-${idx} item-content video`, { 'playing-inline': isPlayingInline }]" :url="toVideoCoverUrl(file)"
           :style="{ 'background-image': isPlayingInline ? 'none' : `url('${file.cover_url ?? toVideoCoverUrl(file)}')` }" v-else-if="isVideoFile(file.name)"
-          @click="handleVideoClick">
+          @click="handleVideoClick()">
 
           <!-- 原地播放视频元素 -->
           <video
@@ -345,12 +348,14 @@ const handleAudioClick = () => {
           </div>
 
           <!-- 原有的中心播放图标（用于打开modal） -->
-          <!-- Shown only while autoplay is on: the badge says a click starts
-               playback straight away. With autoplay off, opening a clip pauses
-               on the first frame, so the badge would be promising something
-               that does not happen - and a grid of video is thumbnails enough
-               to say what these are. -->
-          <div class="play-icon" v-show="!isPlayingInline && global.autoPlayMedia">
+          <!-- Always shown, and now it MEANS something: a mixed folder needs
+               to say which cells are video (a still frame from a clip looks
+               exactly like an image), and clicking the badge itself opens the
+               clip playing, while clicking anywhere else on the cell opens it
+               per the autoplay setting. Hiding the badge when autoplay is off
+               was tried and abandoned - it removed the only thing marking a
+               video as a video. -->
+          <div class="play-icon" v-show="!isPlayingInline" @click.stop="handleVideoClick(true)">
             <img :src="play" style="width: 40px;height: 40px;">
           </div>
           <div class="tags-container" v-if="customTags && cellWidth > minShowDetailWidth">
@@ -514,12 +519,14 @@ const handleAudioClick = () => {
 
   .play-icon {
     position: absolute;
+    cursor: pointer;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 100%;
     display: flex;
   }
+
 
   .tags-container {
     position: absolute;

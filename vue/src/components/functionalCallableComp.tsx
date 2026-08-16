@@ -61,7 +61,14 @@ const openMediaModalImpl = (
   onTagClick?: (id: string| number) => void,
   onTiktokView?: () => void,
   mediaType: 'video' | 'audio' = 'video',
-  nav?: MediaNav
+  nav?: MediaNav,
+  // Set when the operator clicked the PLAY BADGE rather than the thumbnail.
+  // The badge means play, so it plays whatever the autoplay setting says;
+  // clicking anywhere else on the cell follows the setting. That is what
+  // makes the badge worth showing on every video: it is an affordance with
+  // its own meaning, not decoration that has to be hidden when the setting
+  // is off.
+  forcePlay = false
 ) => {
   const tagStore = useTagStore()
   const global = useGlobalStore()
@@ -298,7 +305,7 @@ const openMediaModalImpl = (
     const next = nav.at(nav.idx, dir)
     if (!next) return
     modal.destroy()
-    openMediaModalImpl(next.file, onTagClick, onTiktokView, mediaType, { ...nav, idx: next.idx })
+    openMediaModalImpl(next.file, onTagClick, onTiktokView, mediaType, { ...nav, idx: next.idx }, forcePlay)
   }
 
   const isTypingTarget = (target: EventTarget | null) => {
@@ -537,7 +544,7 @@ const openMediaModalImpl = (
         >
           {mediaType === 'video' ? (
             <>
-              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></video>
+              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined}></video>
               <div class="iib-media-modal-right">
                 {sidePanel}
               </div>
@@ -545,7 +552,7 @@ const openMediaModalImpl = (
           ) : (
             <>
               <div style={{ fontSize: '80px', marginBottom: '16px' }}>🎵</div>
-              <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></audio>
+              <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined}></audio>
               {sidePanel}
             </>
           )}
@@ -566,15 +573,17 @@ export const openVideoModal = (
   file: FileNodeInfo,
   onTagClick?: (id: string| number) => void,
   onTiktokView?: () => void,
-  nav?: MediaNav
-) => openMediaModalImpl(file, onTagClick, onTiktokView, 'video', nav)
+  nav?: MediaNav,
+  forcePlay = false
+) => openMediaModalImpl(file, onTagClick, onTiktokView, 'video', nav, forcePlay)
 
 export const openAudioModal = (
   file: FileNodeInfo,
   onTagClick?: (id: string| number) => void,
   onTiktokView?: () => void,
-  nav?: MediaNav
-) => openMediaModalImpl(file, onTagClick, onTiktokView, 'audio', nav)
+  nav?: MediaNav,
+  forcePlay = false
+) => openMediaModalImpl(file, onTagClick, onTiktokView, 'audio', nav, forcePlay)
 
 export const openRebuildImageIndexModal = () => {
   Modal.confirm({
