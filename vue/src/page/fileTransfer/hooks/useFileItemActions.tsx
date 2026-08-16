@@ -220,6 +220,18 @@ export function useFileItemActions (
         message.success(t('settingsSentToVideoGenerator'))
         return
       }
+      case 'send2wan2gpStartImage': {
+        // Same bus, same preset shape as send2wan2gpSettings above - only the
+        // path travels, no setImgPath round-trip. The host plugin stages the
+        // image as Wan2GP's i2v start image on the other end.
+        imgTransferBus.postMessage({
+          ...preset,
+          event: 'wan2gp_set_start_image',
+          path: file.fullpath
+        })
+        message.success(t('startImageSentToVideoGenerator'))
+        return
+      }
       case 'send2txt2img':
         return copyImgTo('txt2img')
       case 'send2img2img':

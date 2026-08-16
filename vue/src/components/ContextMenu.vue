@@ -2,7 +2,7 @@
 import type { Tag } from '@/api/db'
 import type { FileNodeInfo } from '@/api/files'
 import type { MenuInfo } from 'ant-design-vue/lib/menu/src/interface'
-import { isMediaFile } from '@/util'
+import { isMediaFile, isImageFile } from '@/util'
 import { StarFilled, StarOutlined } from '@/icon'
 import { useGlobalStore } from '@/store/useGlobalStore'
 import { computed } from 'vue'
@@ -40,6 +40,7 @@ const tags = computed(() => {
         <a-menu-divider />
         <template v-if="global.conf?.launch_mode !== 'server'">
           <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
+          <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
           <a-menu-item key="send2txt2img">{{ $t('sendToTxt2img') }}</a-menu-item>
           <a-menu-item key="send2img2img">{{ $t('sendToImg2img') }}</a-menu-item>
           <a-menu-item key="send2inpaint">{{ $t('sendToInpaint') }}</a-menu-item>
