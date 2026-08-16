@@ -187,6 +187,8 @@ export const de: Partial<IIBI18nMap> = {
   nextMedia: 'Weiter',
   sendAsStartImage: 'Als Video-Startbild hinzufügen',
   startImageSentToVideoGenerator: 'Als Startbild gesendet',
+  sendAsStartImageWithPrompt: 'Als Video-Startbild mit Prompt hinzufügen',
+  startImageAndPromptSent: 'Als Startbild mit Prompt gesendet',
   metaSectionGeneration: 'Generierung',
   metaSectionLoras: 'LoRAs',
   metaSectionTiming: 'Zeit',

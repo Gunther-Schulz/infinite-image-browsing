@@ -509,6 +509,7 @@ const editPromptAndReload = async () => {
                   <template v-if="global.conf?.launch_mode === 'wan2gp'">
                     <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
                     <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
+                    <a-menu-item key="send2wan2gpStartImageWithPrompt" v-if="isImageFile(file.name)">{{ $t('sendAsStartImageWithPrompt') }}</a-menu-item>
                   </template>
                   <template v-if="global.conf?.launch_mode === 'sd'">
                     <a-menu-item key="send2txt2img">{{ $t('sendToTxt2img') }}</a-menu-item>

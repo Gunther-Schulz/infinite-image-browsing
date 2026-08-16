@@ -216,6 +216,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   nextMedia: '下一個',
   sendAsStartImage: '新增為影片起始圖',
   startImageSentToVideoGenerator: '已作為起始圖發送',
+  sendAsStartImageWithPrompt: '新增為影片起始圖（含提示詞）',
+  startImageAndPromptSent: '已作為起始圖（含提示詞）發送',
   metaSectionGeneration: '生成',
   metaSectionLoras: 'LoRA',
   metaSectionTiming: '耗時',

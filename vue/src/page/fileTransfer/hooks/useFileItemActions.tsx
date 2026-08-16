@@ -9,6 +9,7 @@ import {
   createReactiveQueue,
   isImageFile,
   copy2clipboardI18n} from '@/util'
+import { parse } from '@/util/stable-diffusion-image-metadata'
 import { type FileNodeInfo, deleteFiles, moveFiles, copyFiles } from '@/api/files'
 import { last, range, uniqueId } from 'lodash-es'
 import * as Path from '@/util/path'
@@ -230,6 +231,38 @@ export function useFileItemActions (
           path: file.fullpath
         })
         message.success(t('startImageSentToVideoGenerator'))
+        return
+      }
+      case 'send2wan2gpStartImageWithPrompt': {
+        // Same bus and destination as send2wan2gpStartImage above, plus the
+        // prompt - which has to be fetched and parsed HERE, because it lives
+        // in the file's own metadata, not in the listing. This is deliberately
+        // frontend-side: our parser understands both A1111 parameter strings
+        // and our video-container format, so it works for a Forge PNG and a
+        // Wan2GP still alike, where Wan2GP's own settings reader understands
+        // only its own. Same parser the preview panel uses
+        // (functionalCallableComp.tsx).
+        let prompt = ''
+        let negativePrompt = ''
+        try {
+          const info = await getImageGenerationInfo(file.fullpath)
+          const meta = parse(info)
+          prompt = meta.prompt ?? ''
+          negativePrompt = meta.negativePrompt ?? ''
+        } catch (error) {
+          // No readable metadata is not fatal - the image still sends, just
+          // without a prompt to prefill.
+          console.error(error)
+          message.warning('Could not read this image\'s generation info; sending image without a prompt.')
+        }
+        imgTransferBus.postMessage({
+          ...preset,
+          event: 'wan2gp_set_start_image_with_prompt',
+          path: file.fullpath,
+          prompt,
+          negativePrompt
+        })
+        message.success(t('startImageAndPromptSent'))
         return
       }
       case 'send2txt2img':
