@@ -281,190 +281,212 @@ const openMediaModalImpl = (
     width: mediaType === 'video' ? '80vw' : '70vw',
     title: file.name,
     icon: null,
-    content: () => (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column'
-        }}
-      >
-        {mediaType === 'video' ? (
-          <video ref={videoRef} style={{ maxHeight: isStandalone ? '80vh' : '60vh', maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></video>
-        ) : (
-          <>
-            <div style={{ fontSize: '80px', marginBottom: '16px' }}>🎵</div>
-            <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></audio>
-          </>
-        )}
+    content: () => {
+      // Shared with the right-hand panel in the split (video) layout, so the
+      // panel's scroll area is always capped at the same height as the player.
+      const mediaMaxHeight = isStandalone ? '80vh' : '60vh'
+      // Same knob the fullscreen LR panel publishes (useFullscreenLayout.ts) -
+      // reused rather than a second number, so both layouts move together.
+      const panelWidth = global.conf?.app_fe_setting?.fullscreen_layout?.panelWidth ?? 384
+      const isSplit = mediaType === 'video'
 
-        {/* 标签选择区域 */}
-        <div style={{ marginTop: '16px' }}>
-          <div onClick={openAddNewTagModal}  style={{
-            background: 'var(--zp-primary-background)',
-            color: 'var(--zp-luminous)',
-            border: '2px solid var(--zp-luminous)',
-            ...tagBaseStyle
-          }}>
-            { t('addNewCustomTag') }
-          </div>
-          {global.conf!.all_custom_tags.map((tag) =>
-            <div key={tag.id} onClick={() => onTagClick?.(tag.id)}  style={{
-              background: isSelected(tag.id) ? tagStore.getColor(tag) : 'var(--zp-primary-background)',
-              color: !isSelected(tag.id) ? tagStore.getColor(tag) : 'white',
-              border: `2px solid ${tagStore.getColor(tag)}`,
+      const sidePanel = (
+        <>
+          {/* 标签选择区域 */}
+          <div style={{ marginTop: '16px' }}>
+            <div onClick={openAddNewTagModal}  style={{
+              background: 'var(--zp-primary-background)',
+              color: 'var(--zp-luminous)',
+              border: '2px solid var(--zp-luminous)',
               ...tagBaseStyle
             }}>
-              { tag.name }
-            </div>)}
-        </div>
+              { t('addNewCustomTag') }
+            </div>
+            {global.conf!.all_custom_tags.map((tag) =>
+              <div key={tag.id} onClick={() => onTagClick?.(tag.id)}  style={{
+                background: isSelected(tag.id) ? tagStore.getColor(tag) : 'var(--zp-primary-background)',
+                color: !isSelected(tag.id) ? tagStore.getColor(tag) : 'white',
+                border: `2px solid ${tagStore.getColor(tag)}`,
+                ...tagBaseStyle
+              }}>
+                { tag.name }
+              </div>)}
+          </div>
 
-        {/* 操作按钮 */}
-        <div class="actions" style={{ marginTop: '16px' }}>
-          <Button onClick={() => downloadFiles([toRawFileUrl(file, true)])}>
-            {{
-              icon: <DownloadOutlined/>,
-              default: t('download')
-            }}
-          </Button>
-          {onTiktokView && (
-            <Button onClick={onTiktokViewWrapper} type="primary">
+          {/* 操作按钮 */}
+          <div class="actions" style={{ marginTop: '16px' }}>
+            <Button onClick={() => downloadFiles([toRawFileUrl(file, true)])}>
               {{
-                default: t('tiktokView')
+                icon: <DownloadOutlined/>,
+                default: t('download')
               }}
             </Button>
-          )}
-          {mediaType === 'video' && (
+            {onTiktokView && (
+              <Button onClick={onTiktokViewWrapper} type="primary">
+                {{
+                  default: t('tiktokView')
+                }}
+              </Button>
+            )}
+            {mediaType === 'video' && (
+              <Button onClick={async () => {
+                if (!videoRef.value) return
+                const video = videoRef.value
+                video.pause()
+                const base64 = video2base64(video)
+                await setTargetFrameAsCover({ path: file.fullpath, base64_img: base64, updated_time: file.date })
+                file.cover_url = URL.createObjectURL(await base64ToFile(base64, 'cover'))
+                message.success(t('success') + '!  ' + t('clearCacheIfNotTakeEffect'))
+              }}>
+                {{ default: t('setCurrFrameAsVideoPoster') }}
+              </Button>
+            )}
+            {mediaType === 'video' && global.conf?.launch_mode !== 'server' && (
+              <Button onClick={() => {
+                const bus = new BroadcastChannel('iib-image-transfer-bus')
+                bus.postMessage({ event: 'wan2gp_load_settings', path: file.fullpath })
+                bus.close()
+                message.success(t('settingsSentToVideoGenerator'))
+              }}>
+                {{ default: t('sendSettingsToVideoGenerator') }}
+              </Button>
+            )}
             <Button onClick={async () => {
-              if (!videoRef.value) return
-              const video = videoRef.value
-              video.pause()
-              const base64 = video2base64(video)
-              await setTargetFrameAsCover({ path: file.fullpath, base64_img: base64, updated_time: file.date })
-              file.cover_url = URL.createObjectURL(await base64ToFile(base64, 'cover'))
-              message.success(t('success') + '!  ' + t('clearCacheIfNotTakeEffect'))
-            }}>
-              {{ default: t('setCurrFrameAsVideoPoster') }}
+              await openEditPromptModal(file)
+              await loadPrompt()
+            }} icon={<EditOutlined />}>
+              {{ default: t('editPrompt') }}
             </Button>
-          )}
-          {mediaType === 'video' && global.conf?.launch_mode !== 'server' && (
-            <Button onClick={() => {
-              const bus = new BroadcastChannel('iib-image-transfer-bus')
-              bus.postMessage({ event: 'wan2gp_load_settings', path: file.fullpath })
-              bus.close()
-              message.success(t('settingsSentToVideoGenerator'))
-            }}>
-              {{ default: t('sendSettingsToVideoGenerator') }}
-            </Button>
-          )}
-          <Button onClick={async () => {
-            await openEditPromptModal(file)
-            await loadPrompt()
-          }} icon={<EditOutlined />}>
-            {{ default: t('editPrompt') }}
-          </Button>
-        </div>
-
-        {/* 提示词显示区域 */}
-        {promptLoading.value ? (
-          <div style={{ marginTop: '24px', width: '100%', textAlign: 'center' }}>
-            <Spin />
           </div>
-        ) : imageGenInfo.value ? (
-          <div style={{ marginTop: '24px', width: '100%', maxWidth: mediaType === 'video' ? '1000px' : '900px', alignSelf: 'center' /* centred like the player and buttons above; flex-start left this block hanging off to one side */ }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--zp-primary)', fontSize: '14px', fontWeight: 500 }}>
-              <FileTextOutlined />
-              <span>Prompt</span>
+
+          {/* 提示词显示区域 */}
+          {promptLoading.value ? (
+            <div style={{ marginTop: '24px', width: '100%', textAlign: 'center' }}>
+              <Spin />
             </div>
-            {geninfoStruct().prompt && (
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Positive</div>
-                <code style={{ fontSize: '13px', display: 'block', padding: '10px 12px', background: 'var(--zp-primary-background)', borderRadius: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.6em' }} innerHTML={spanWrap(geninfoStruct().prompt ?? '')}></code>
+          ) : imageGenInfo.value ? (
+            <div style={{ marginTop: '24px', width: '100%', maxWidth: mediaType === 'video' ? '1000px' : '900px', alignSelf: 'center' /* centred like the player and buttons above; flex-start left this block hanging off to one side */ }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--zp-primary)', fontSize: '14px', fontWeight: 500 }}>
+                <FileTextOutlined />
+                <span>Prompt</span>
               </div>
-            )}
-            {geninfoStruct().negativePrompt && (
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Negative</div>
-                <code style={{ fontSize: '13px', display: 'block', padding: '10px 12px', background: 'var(--zp-primary-background)', borderRadius: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.6em' }} innerHTML={spanWrap(geninfoStruct().negativePrompt ?? '')}></code>
+              {geninfoStruct().prompt && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Positive</div>
+                  <code style={{ fontSize: '13px', display: 'block', padding: '10px 12px', background: 'var(--zp-primary-background)', borderRadius: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.6em' }} innerHTML={spanWrap(geninfoStruct().prompt ?? '')}></code>
+                </div>
+              )}
+              {geninfoStruct().negativePrompt && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>Negative</div>
+                  <code style={{ fontSize: '13px', display: 'block', padding: '10px 12px', background: 'var(--zp-primary-background)', borderRadius: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.6em' }} innerHTML={spanWrap(geninfoStruct().negativePrompt ?? '')}></code>
+                </div>
+              )}
+              {(() => {
+                const sections = metaSections()
+                const hasMeta = sections.generation.length > 0 || sections.loras.length > 0 ||
+                  sections.lsetName.length > 0 ||
+                  sections.timing.length > 0 || sections.rest.length > 0
+                if (!hasMeta) return null
+
+                const renderKvTable = (rows: [string, string][]) => (
+                  <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
+                      <tbody>
+                        {rows.map(([key, value], i) => (
+                          <tr key={key} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
+                            <td style={{ padding: '5px 10px', width: '38%', color: 'var(--zp-primary)', opacity: 0.65, verticalAlign: 'top', wordBreak: 'break-word' }}>{key}</td>
+                            <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+
+                return (
+                  <div style={{ alignSelf: 'center' }}>
+                    {sections.generation.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionGeneration')}</div>
+                        {renderKvTable(sections.generation)}
+                      </div>
+                    )}
+                    {(sections.loras.length > 0 || sections.lsetName) && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionLoras')}</div>
+                        {sections.lsetName && (
+                          <div style={{ fontSize: '12px', color: 'var(--zp-secondary)', marginBottom: '6px' }}>{sections.lsetName}</div>
+                        )}
+                        {sections.loras.length > 0 && (
+                        <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
+                            <tbody>
+                              {sections.loras.map((row, i) => (
+                                <tr key={row.name} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
+                                  <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', wordBreak: 'break-word' }}>{row.name}</td>
+                                  <td style={{ padding: '5px 10px', width: '1%', whiteSpace: 'nowrap', color: 'var(--zp-primary)', verticalAlign: 'top' }}>x{row.multiplier}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        )}
+                      </div>
+                    )}
+                    {sections.timing.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionTiming')}</div>
+                        {renderKvTable(sections.timing)}
+                      </div>
+                    )}
+                    {sections.rest.length > 0 && (
+                      <div>
+                        <div
+                          style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px', cursor: 'pointer', userSelect: 'none' }}
+                          onClick={() => { showAllMeta.value = !showAllMeta.value }}
+                        >
+                          {t('metaSectionEverythingElse')} - {showAllMeta.value ? t('metaHide') : `${t('metaShowAll')} (${sections.rest.length})`}
+                        </div>
+                        {showAllMeta.value && renderKvTable(sections.rest)}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          ) : null}
+        </>
+      )
+
+      return (
+        <div
+          class={isSplit ? 'iib-media-modal-body iib-media-modal-body--split' : 'iib-media-modal-body'}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            ...(isSplit ? { '--iib-media-panel-width': `${panelWidth}px`, '--iib-media-max-height': mediaMaxHeight } : {})
+          } as any}
+        >
+          {mediaType === 'video' ? (
+            <>
+              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></video>
+              <div class="iib-media-modal-right">
+                {sidePanel}
               </div>
-            )}
-            {(() => {
-              const sections = metaSections()
-              const hasMeta = sections.generation.length > 0 || sections.loras.length > 0 ||
-                sections.lsetName.length > 0 ||
-                sections.timing.length > 0 || sections.rest.length > 0
-              if (!hasMeta) return null
-
-              const renderKvTable = (rows: [string, string][]) => (
-                <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
-                    <tbody>
-                      {rows.map(([key, value], i) => (
-                        <tr key={key} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
-                          <td style={{ padding: '5px 10px', width: '38%', color: 'var(--zp-primary)', opacity: 0.65, verticalAlign: 'top', wordBreak: 'break-word' }}>{key}</td>
-                          <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )
-
-              return (
-                <div style={{ alignSelf: 'center' }}>
-                  {sections.generation.length > 0 && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionGeneration')}</div>
-                      {renderKvTable(sections.generation)}
-                    </div>
-                  )}
-                  {(sections.loras.length > 0 || sections.lsetName) && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionLoras')}</div>
-                      {sections.lsetName && (
-                        <div style={{ fontSize: '12px', color: 'var(--zp-secondary)', marginBottom: '6px' }}>{sections.lsetName}</div>
-                      )}
-                      {sections.loras.length > 0 && (
-                      <div style={{ background: 'var(--zp-secondary-background)', borderRadius: '6px', overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', lineHeight: '1.5em', tableLayout: 'fixed' }}>
-                          <tbody>
-                            {sections.loras.map((row, i) => (
-                              <tr key={row.name} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
-                                <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', wordBreak: 'break-word' }}>{row.name}</td>
-                                <td style={{ padding: '5px 10px', width: '1%', whiteSpace: 'nowrap', color: 'var(--zp-primary)', verticalAlign: 'top' }}>x{row.multiplier}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      )}
-                    </div>
-                  )}
-                  {sections.timing.length > 0 && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px' }}>{t('metaSectionTiming')}</div>
-                      {renderKvTable(sections.timing)}
-                    </div>
-                  )}
-                  {sections.rest.length > 0 && (
-                    <div>
-                      <div
-                        style={{ fontSize: '12px', color: 'var(--zp-primary)', marginBottom: '6px', cursor: 'pointer', userSelect: 'none' }}
-                        onClick={() => { showAllMeta.value = !showAllMeta.value }}
-                      >
-                        {t('metaSectionEverythingElse')} - {showAllMeta.value ? t('metaHide') : `${t('metaShowAll')} (${sections.rest.length})`}
-                      </div>
-                      {showAllMeta.value && renderKvTable(sections.rest)}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-          </div>
-        ) : null}
-      </div>
-    ),
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: '80px', marginBottom: '16px' }}>🎵</div>
+              <audio style={{ width: '100%', maxWidth: '500px' }} src={toStreamAudioUrl(file)} controls autoplay={global.autoPlayMedia || undefined}></audio>
+              {sidePanel}
+            </>
+          )}
+        </div>
+      )
+    },
     maskClosable: true,
     wrapClassName: 'hidden-antd-btns-modal'
   })

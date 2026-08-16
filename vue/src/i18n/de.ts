@@ -204,6 +204,7 @@ export const de: Partial<IIBI18nMap> = {
   restoreLastRecord: 'Letztes Verzeichnis wiederherstellen',
   launch: 'Ausführen',
   walkMode: 'Verwende den Walk-Modus, um Dateien zu durchsuchen',
+  launchFromNormalAndFixed: 'Verwende den Normal-/Fixed-Modus, um Dateien zu durchsuchen',
   recent: 'Kürzlich',
   emptyStartPage: 'Leere Startseite',
   t2i: 'Text-zu-Bild',

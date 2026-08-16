@@ -207,6 +207,31 @@ ul.ant-dropdown-menu  {
   }
 }
 
+// Two-column layout for the video modal (functionalCallableComp.tsx). Video
+// only - stacks exactly as before below the breakpoint; only the split
+// (>=1200px) block below changes anything. --iib-media-panel-width and
+// --iib-media-max-height are set inline by the component so both layouts
+// share the same panel width and player height, without a resize listener.
+@media (min-width: 1200px) {
+  .iib-media-modal-body--split {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 24px;
+
+    .iib-media-modal-video {
+      min-width: 0 !important;
+      flex: 1 1 auto;
+    }
+
+    .iib-media-modal-right {
+      flex: 0 0 var(--iib-media-panel-width, 384px);
+      width: var(--iib-media-panel-width, 384px);
+      max-height: var(--iib-media-max-height, 60vh);
+      overflow-y: auto;
+    }
+  }
+}
+
 
 .ant-image-preview-root {
   .ant-image-preview-mask {
