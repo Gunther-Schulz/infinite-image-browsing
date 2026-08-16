@@ -8,7 +8,7 @@ import { globalEvents, asyncCheck, useGlobalEventListen } from '@/util'
 import { debounce, uniqueId } from 'lodash-es'
 import edgeTrigger from './edgeTrigger.vue'
 import { t } from '@/i18n'
-import { tryOnMounted, useDocumentVisibility, type Fn } from '@vueuse/core'
+import { tryOnMounted, useDocumentVisibility, useIntersectionObserver, type Fn } from '@vueuse/core'
 import ImgSliDrawer from '../ImgSli/ImgSliDrawer.vue'
 
 
@@ -90,6 +90,10 @@ watch(
 
 const emitReturnToIIB = debounce(() => globalEvents.emit('returnToIIB'), 100)
 
+// A1111/Forge-only: window.parent.onUiTabChange only exists in that host, so
+// in every other host (Wan2GP included) this poll times out after 30s,
+// logs the message below, and no listener is ever installed - the watch
+// below is what has to cover the gap for those hosts.
 tryOnMounted(async () => {
   const par = window.parent as Window & { get_uiCurrentTabContent (): undefined | HTMLButtonElement, onUiTabChange (cb: Fn): void }
   if (!await asyncCheck(() => par?.onUiTabChange, 200, 30_000)) {
@@ -103,7 +107,28 @@ tryOnMounted(async () => {
     }
   })
 })
+// Host-agnostic, but does not cover switching Gradio tabs inside one page:
+// the document stays visible the whole time, so this alone never fires then.
 watch(useDocumentVisibility(), v => v && emitReturnToIIB())
+
+// Host-agnostic fallback for the case the two above miss: Gradio hides an
+// inactive tab with `display: none`, and an element going from `display:
+// none` to displayed fires IntersectionObserver even though the document
+// never changed visibility. useIntersectionObserver is used (over a
+// hand-rolled observer) because it already ties its teardown to this
+// component's effect scope via tryOnScopeDispose, so it disconnects on
+// unmount for free.
+let wasContainerVisible: boolean | undefined
+useIntersectionObserver(container, ([entry]) => {
+  const isVisible = entry.isIntersecting
+  // Only a false -> true transition counts as "returned to the tab" -
+  // the initial observation (wasContainerVisible still undefined) must not
+  // fire, or every mount would trigger a refresh.
+  if (wasContainerVisible === false && isVisible) {
+    emitReturnToIIB()
+  }
+  wasContainerVisible = isVisible
+})
 
 </script>
 <template>
