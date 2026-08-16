@@ -345,7 +345,12 @@ const handleAudioClick = () => {
           </div>
 
           <!-- 原有的中心播放图标（用于打开modal） -->
-          <div class="play-icon" v-show="!isPlayingInline">
+          <!-- Shown only while autoplay is on: the badge says a click starts
+               playback straight away. With autoplay off, opening a clip pauses
+               on the first frame, so the badge would be promising something
+               that does not happen - and a grid of video is thumbnails enough
+               to say what these are. -->
+          <div class="play-icon" v-show="!isPlayingInline && global.autoPlayMedia">
             <img :src="play" style="width: 40px;height: 40px;">
           </div>
           <div class="tags-container" v-if="customTags && cellWidth > minShowDetailWidth">

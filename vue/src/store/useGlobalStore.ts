@@ -333,10 +333,17 @@ export const useGlobalStore = defineStore(
 
     const longPressOpenContextMenu = ref(false)
 
-    // Opening a clip should not start it. Default off: a gallery is for
-    // looking through, and sound firing on every click is worse than one
-    // extra press for the people who want playback.
-    const autoPlayMedia = ref(false)
+    // Default ON, which is what opening a clip in a browser has always done
+    // here and what anyone running IIB over a picture library expects.
+    //
+    // A library of VIDEO wants the opposite, and that preference belongs to
+    // whoever deploys it rather than to the app: the wan2gp-launcher seeds
+    // this off for its own gallery (seed_gallery_ui_defaults in
+    // launcher-common.sh), once, and stops overriding the moment the operator
+    // touches their settings. Baking the deployment's preference into the
+    // app's default is what this comment exists to prevent a future reader
+    // from redoing.
+    const autoPlayMedia = ref(true)
 
     const shortcut = ref<Shortcut>({
       delete: '',
