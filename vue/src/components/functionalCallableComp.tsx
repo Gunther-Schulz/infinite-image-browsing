@@ -289,6 +289,20 @@ const openMediaModalImpl = (
   // 加载提示词
   loadPrompt()
 
+  // Controls that follow the pointer instead of Chromium's inactivity timer.
+  // Set on the ELEMENT rather than through a reactive prop: the modal's content
+  // is a render function, and re-rendering it on every mouse cross would tear
+  // down and rebuild the <video>, restarting playback. Toggling the property
+  // leaves the element - and the playhead - alone.
+  //
+  // Only when the setting is on. Off, the attribute above is already true and
+  // these handlers write the value it already has.
+  const onVideoPointer = (inside: boolean) => (e: MouseEvent) => {
+    if (!global.hoverVideoControls) return
+    const el = e.currentTarget as HTMLVideoElement | null
+    if (el) el.controls = inside
+  }
+
   const onTiktokViewWrapper = () => {
     onTiktokView?.()
     closeImageFullscreenPreview()
@@ -544,7 +558,17 @@ const openMediaModalImpl = (
         >
           {mediaType === 'video' ? (
             <>
-              <video ref={videoRef} class="iib-media-modal-video" style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }} src={toStreamVideoUrl(file)} controls autoplay={(forcePlay || global.autoPlayMedia) || undefined} loop={global.loopMedia || undefined}></video>
+              <video
+                ref={videoRef}
+                class="iib-media-modal-video"
+                style={{ maxHeight: mediaMaxHeight, maxWidth: '100%', minWidth: '70%' }}
+                src={toStreamVideoUrl(file)}
+                controls={global.hoverVideoControls ? undefined : true}
+                autoplay={(forcePlay || global.autoPlayMedia) || undefined}
+                loop={global.loopMedia || undefined}
+                onMouseenter={onVideoPointer(true)}
+                onMouseleave={onVideoPointer(false)}
+              ></video>
               <div class="iib-media-modal-right">
                 {sidePanel}
               </div>

@@ -228,6 +228,7 @@ export const de: Partial<IIBI18nMap> = {
   longPressOpenContextMenu: 'Langes Rechtsklicken zur Öffnung des Kontextmenüs unterstützen',
   autoPlayMedia: 'Videos und Audio beim Öffnen automatisch starten',
   loopMedia: 'Videos und Audio am Ende wiederholen',
+  hoverVideoControls: 'Video-Steuerung nur zeigen, solange der Zeiger über dem Video ist',
   searchResults: 'Suchergebnisse',
   imgSearch: 'Bildsuche',
   send2savedDir: 'In den gespeicherten Ordner senden',
