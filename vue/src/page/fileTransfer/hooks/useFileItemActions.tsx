@@ -217,7 +217,7 @@ export function useFileItemActions (
           event: 'wan2gp_load_settings',
           path: file.fullpath
         })
-        message.success('Settings sent to the generator')
+        message.success(t('settingsSentToVideoGenerator'))
         return
       }
       case 'send2txt2img':

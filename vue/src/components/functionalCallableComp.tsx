@@ -331,6 +331,16 @@ const openMediaModalImpl = (
               {{ default: t('setCurrFrameAsVideoPoster') }}
             </Button>
           )}
+          {mediaType === 'video' && global.conf?.launch_mode !== 'server' && (
+            <Button onClick={() => {
+              const bus = new BroadcastChannel('iib-image-transfer-bus')
+              bus.postMessage({ event: 'wan2gp_load_settings', path: file.fullpath })
+              bus.close()
+              message.success(t('settingsSentToVideoGenerator'))
+            }}>
+              {{ default: t('sendSettingsToVideoGenerator') }}
+            </Button>
+          )}
           <Button onClick={async () => {
             await openEditPromptModal(file)
             await loadPrompt()

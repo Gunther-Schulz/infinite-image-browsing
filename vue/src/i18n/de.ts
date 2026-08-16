@@ -181,6 +181,8 @@ export const de: Partial<IIBI18nMap> = {
   previewInNewWindow: 'In neuem Fenster öffnen',
   copySourceFilePreviewLink: 'Kopiere Dateilink aus dem Verzeichnis',
   viewGenerationInfo: 'Anzeige von Generierungsinformationen (Prompt, etc.)',
+  sendSettingsToVideoGenerator: 'Einstellungen an Videogenerator senden',
+  settingsSentToVideoGenerator: 'Einstellungen an den Videogenerator gesendet',
   sendToTxt2img: 'Senden an Text-zu-Bild',
   sendToImg2img: 'Senden an Bild-zu-Bild',
   sendToInpaint: 'Senden an Inpaint',

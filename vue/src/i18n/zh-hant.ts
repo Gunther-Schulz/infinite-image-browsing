@@ -210,6 +210,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   previewInNewWindow: '在新窗口預覽',
   copySourceFilePreviewLink: '複製源文件預覽連結',
   viewGenerationInfo: '檢視生成信息(提示等)',
+  sendSettingsToVideoGenerator: '發送設定到影片生成器',
+  settingsSentToVideoGenerator: '設定已發送到影片生成器',
   sendToTxt2img: '發送到文生圖',
   sendToImg2img: '發送到圖生圖',
   sendToInpaint: '發送到局部重繪',

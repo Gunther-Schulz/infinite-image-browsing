@@ -204,6 +204,8 @@ export const zhHans = {
   previewInNewWindow: '在新窗口预览',
   copySourceFilePreviewLink: '复制源文件预览链接',
   viewGenerationInfo: '查看生成信息(prompt等)',
+  sendSettingsToVideoGenerator: '发送设置到视频生成器',
+  settingsSentToVideoGenerator: '设置已发送到视频生成器',
   sendToTxt2img: '发送到文生图',
   sendToImg2img: '发送到图生图',
   sendToInpaint: '发送到局部重绘',
