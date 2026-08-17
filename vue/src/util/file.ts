@@ -3,7 +3,24 @@ import { apiBase } from '@/api'
 import { uniqBy } from 'lodash-es'
 import { isTauri } from './env'
 
-const encode = encodeURIComponent
+// encodeURIComponent leaves the apostrophe alone - it is an unreserved mark in
+// RFC 2396 - and that is fine for a URL but NOT for a URL pasted into a CSS
+// string. FileItem renders the video cover as `background-image: url('...')`,
+// single-quoted, so one apostrophe in a filename closes the string early, the
+// whole declaration becomes invalid, and the computed background-image is
+// `none`. On a RECYCLED tile that leaves the previous tile's picture painted,
+// which is why the same bug shows up as both a missing thumbnail and, worse, as
+// one video's thumbnail on another video's tile.
+//
+// Measured 2026-08-17 in the running gallery: of 67 video tiles, exactly the 4
+// whose filenames contain an apostrophe had no background-image, and all 63
+// without one rendered. Wan2GP names output files after the prompt, so "She's"
+// in a prompt is enough.
+//
+// Encoding it here rather than escaping at the one call site: %27 is a valid
+// URL escape the server decodes back, so every consumer stays correct, and the
+// next `url('...')` written elsewhere cannot reintroduce this.
+const encode = (value: string) => encodeURIComponent(value).replace(/'/g, '%27')
 export const toRawFileUrl = (file: FileNodeInfo, download = false) =>
   `${apiBase.value}/file?path=${encode(file.fullpath)}&t=${encode(file.date)}${download ? `&disposition=${encode(file.name)}` : ''
   }`
