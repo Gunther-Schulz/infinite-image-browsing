@@ -138,6 +138,22 @@ class Image:
             "type": "file",
             "id": self.id,
             "date": self.date,
+            # The frontend's created-time comparator reads `created_time`
+            # (vue/src/page/fileTransfer/fileSort.ts:51-52), which is also what
+            # the folder route emits (api.py get_target_folder_files). Emitting
+            # only `created_date` here left every database-backed row without
+            # the key: Date.parse(undefined) is NaN, the comparator returns NaN,
+            # and Array.prototype.sort then leaves the results in an arbitrary
+            # order - and created-time-desc is the DEFAULT sort
+            # (vue/src/store/useGlobalStore.ts:264), so search, tag match and
+            # random images were all affected out of the box.
+            #
+            # The index stores only one timestamp, the modified date
+            # (update_image_data.py:175 get_modified_date), so this is that date
+            # rather than a true birth time. For write-once generated output the
+            # two coincide, and no value can be better than the index holds
+            # without a stat() per row on the search path.
+            "created_time": self.date,
             "created_date": self.date,
             "size": human_readable_size(self.size),
             "is_under_scanned_path": True,
