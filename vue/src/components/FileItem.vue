@@ -107,6 +107,12 @@ const minShowDetailWidth = 160
 
 // 视频原地播放相关
 const isPlayingInline = ref(false)
+// Whether this tile's cover failed to load. Reset by @load, so a RECYCLED node
+// showing a different file does not inherit the previous file's failure - the
+// same reuse that made the old background-image bug present as a neighbour's
+// picture rather than as a blank tile.
+const coverFailed = ref(false)
+watch(() => props.file?.fullpath, () => { coverFailed.value = false })
 const videoElementRef = ref<HTMLVideoElement | null>(null)
 
 // 切换原地播放
@@ -325,8 +331,26 @@ const handleAudioClick = () => {
           </div>
         </div>
         <div :class="[`idx-${idx} item-content video`, { 'playing-inline': isPlayingInline }]" :url="toVideoCoverUrl(file)"
-          :style="{ 'background-image': isPlayingInline ? 'none' : `url('${file.cover_url ?? toVideoCoverUrl(file)}')` }" v-else-if="isVideoFile(file.name)"
+          v-else-if="isVideoFile(file.name)"
           @click="handleVideoClick()">
+
+          <!-- The cover is an <img>, not a CSS background-image. A URL
+               interpolated into `url('...')` is CSS SOURCE TEXT, so one
+               apostrophe in a filename invalidated the declaration and the
+               computed value fell back to `none` - silently, and on a recycled
+               RecycleScroller node that left the PREVIOUS tile's picture
+               painted. An <img> takes the URL as an attribute, so no quoting
+               question exists, and @error makes a future failure visible
+               instead of inheriting a neighbour's image. -->
+          <img
+            v-if="!isPlayingInline"
+            :src="file.cover_url ?? toVideoCoverUrl(file)"
+            class="video-cover"
+            :class="{ 'cover-failed': coverFailed }"
+            alt=""
+            draggable="false"
+            @error="coverFailed = true"
+            @load="coverFailed = false" />
 
           <!-- 原地播放视频元素 -->
           <video
@@ -421,9 +445,28 @@ const handleAudioClick = () => {
     overflow: hidden;
     width: v-bind('$props.cellWidth + "px"');
     height: v-bind('$props.cellWidth + "px"');
-    background-size: cover;
-    background-position: center;
     cursor: pointer;
+
+    // Reproduces what `background-size: cover; background-position: center`
+    // did, now that the cover is an element rather than a painted background.
+    // Sits under the overlays, which are positioned.
+    .video-cover {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    // A cover that genuinely cannot load leaves the tile's own background
+    // colour showing, never a neighbouring tile's image.
+    .video-cover.cover-failed {
+      visibility: hidden;
+    }
 
     &.playing-inline {
       background-color: #000;
