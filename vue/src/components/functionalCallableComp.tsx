@@ -6,6 +6,7 @@ import { setTargetFrameAsCover, getImageGenerationInfo } from '@/api'
 import { parse } from '@/util/stable-diffusion-image-metadata'
 import { t } from '@/i18n'
 import { downloadFiles, globalEvents, toRawFileUrl, toStreamVideoUrl, toStreamAudioUrl } from '@/util'
+import { pauseVideosOnSendToWan2gp } from '@/util/pauseVideosOnSend'
 import { DownloadOutlined, FileTextOutlined, EditOutlined, LeftOutlined, RightOutlined } from '@/icon'
 import { isStandalone } from '@/util/env'
 import { addCustomTag, getDbBasicInfo, rebuildImageIndex, renameFile } from '@/api/db'
@@ -499,6 +500,13 @@ const openMediaModalImpl = (
             )}
             {mediaType === 'video' && global.conf?.launch_mode === 'wan2gp' && (
               <Button onClick={() => {
+                // This popup is the ONLY place a video actually plays - the
+                // grid renders covers as <img> - so this is the send that the
+                // pause exists for. It was the last one to get it, because it
+                // is a standalone button with its own inline bus rather than a
+                // case in useFileItemActions, so it stayed invisible to a
+                // sweep of the context-menu actions.
+                pauseVideosOnSendToWan2gp()
                 const bus = new BroadcastChannel('iib-image-transfer-bus')
                 bus.postMessage({ event: 'wan2gp_load_settings', path: file.fullpath })
                 bus.close()

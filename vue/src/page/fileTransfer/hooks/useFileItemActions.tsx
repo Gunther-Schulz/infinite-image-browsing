@@ -22,6 +22,7 @@ import { getShortcutStrFromEvent } from '@/util/shortcut'
 import { MultiSelectTips, openAddNewTagModal, openRenameFileModal } from '@/components/functionalCallableComp'
 import { batchDownload, events, imgTransferBus, stackCache, tagStore, useEventListen, useHookShareState, global } from '.'
 import { closeImageFullscreenPreview, openImageFullscreenPreview } from '@/util/imagePreviewOperation'
+import { pauseVideosOnSendToWan2gp } from '@/util/pauseVideosOnSend'
 import { openTiktokViewWithFiles } from '@/util/tiktokHelper'
 
 
@@ -49,24 +50,9 @@ export function useFileItemActions (
     }
     copy2clipboardI18n(genInfoMeta.value.negativePrompt ?? '')
   }
-  // Document-wide rather than targeted: the currently playing video may be in
-  // the Tiktok-style viewer, a grid preview, or a modal. Pausing an
-  // already-paused video is a no-op.
-  //
-  // Opt-out via the global setting rather than unconditional: "send this clip
-  // to the generator and keep watching this one" is a real way to work, and
-  // the click that sends cannot be told apart from the click that sends AND
-  // wants silence.
-  const pauseAllPlayingVideos = () => {
-    if (!global.pauseVideoOnSendToWan2gp) {
-      return
-    }
-    document.querySelectorAll('video').forEach((video) => {
-      if (!video.paused) {
-        video.pause()
-      }
-    })
-  }
+  // Shared with the preview popup's own send button - see
+  // @/util/pauseVideosOnSend for why this is not inlined per call site.
+  const pauseAllPlayingVideos = pauseVideosOnSendToWan2gp
   const {
     sortedFiles,
     previewIdx,
