@@ -119,6 +119,8 @@ export const de: Partial<IIBI18nMap> = {
   copyPrompt: 'Kopiere Prompt-Konfiguration',
   copyPositivePrompt: 'Positiven Prompt kopieren',
   copyNegativePrompt: 'Negativen Prompt kopieren',
+  noPositivePromptToCopy: 'Diese Datei hat keinen positiven Prompt zum Kopieren',
+  promptCopyFailed: 'Generierungsinfo dieser Datei konnte nicht gelesen werden',
   noNegativePromptToCopy: 'Dieses Bild hat keinen negativen Prompt',
   toggleTag: '(Favorite) Schlagwort hinzufügen/entfernen',
   addCompleted: 'Hinzufügen abgeschlossen',

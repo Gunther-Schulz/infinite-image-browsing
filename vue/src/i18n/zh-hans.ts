@@ -287,6 +287,8 @@ export const zhHans = {
   copyPrompt: '复制提示',
   copyPositivePrompt: '复制正向提示',
   copyNegativePrompt: '复制负向提示',
+  noPositivePromptToCopy: '该文件没有可复制的正向提示',
+  promptCopyFailed: '无法读取该文件的生成信息',
   noNegativePromptToCopy: '此图片没有负向提示词',
   refreshCompleted: '刷新完成',
   'walk-mode-move-message': '在walk模式下仅允许使用"快速移动"移动位置',

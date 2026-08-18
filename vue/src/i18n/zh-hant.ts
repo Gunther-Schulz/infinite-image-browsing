@@ -294,6 +294,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   copyPrompt: '複製提示',
   copyPositivePrompt: '複製正向提示',
   copyNegativePrompt: '複製負向提示',
+  noPositivePromptToCopy: '該檔案沒有可複製的正向提示',
+  promptCopyFailed: '無法讀取該檔案的生成資訊',
   noNegativePromptToCopy: '此圖片沒有負向提示詞',
   refreshCompleted: '重新整理完成',
   'walk-mode-move-message': '在walk模式下僅允許使用"快速移動"移動位置',

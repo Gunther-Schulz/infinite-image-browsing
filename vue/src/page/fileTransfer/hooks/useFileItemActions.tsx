@@ -241,6 +241,37 @@ export function useFileItemActions (
         file.name =  newPath.split(/[\\/]/).pop() ?? ''
         return 
       }
+      case 'copyPositivePromptFromMenu':
+      case 'copyNegativePromptFromMenu': {
+        // The gen-info modal already offers both copies, but only once it is
+        // open - and the modal is not where people look. Reported as "I see no
+        // copy to clipboard button" while the buttons were present and working
+        // two clicks away, which makes this a discoverability defect, not a
+        // missing feature: the right-click menu is where the other per-file
+        // actions live, so the copies belong here too.
+        //
+        // Reads the file's own metadata rather than genInfoMeta, which is only
+        // populated while the modal is showing - relying on it would make this
+        // silently copy the PREVIOUS file's prompt, or nothing at all.
+        const wantNegative = key === 'copyNegativePromptFromMenu'
+        let meta
+        try {
+          meta = parse(await getImageGenerationInfo(file.fullpath))
+        } catch (error) {
+          console.error(error)
+          message.error(t('promptCopyFailed'))
+          return
+        }
+        const text = wantNegative ? meta.negativePrompt : meta.prompt
+        if (!text) {
+          // Saying nothing was there beats a "Copied!" over an empty
+          // clipboard, which reads as success and loses whatever the user had.
+          message.warning(t(wantNegative ? 'noNegativePromptToCopy' : 'noPositivePromptToCopy'))
+          return
+        }
+        copy2clipboardI18n(text)
+        return
+      }
       case 'send2wan2gpSettings': {
         // Wan2GP's generation settings live in the file itself - a JSON blob in
         // the MP4 container's comment tag, or the PNG's metadata - and wgp.py
