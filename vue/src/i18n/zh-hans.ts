@@ -285,6 +285,8 @@ export const zhHans = {
   openContextMenu: '打开上下文菜单',
   copyPrompt: '复制提示',
   copyPositivePrompt: '复制正向提示',
+  copyNegativePrompt: '复制负向提示',
+  noNegativePromptToCopy: '此图片没有负向提示词',
   refreshCompleted: '刷新完成',
   'walk-mode-move-message': '在walk模式下仅允许使用"快速移动"移动位置',
   manualExitFullScreen: '你删除了最后一张图片，也许需要你手动退出全屏查看',

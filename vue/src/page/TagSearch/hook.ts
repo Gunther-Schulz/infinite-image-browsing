@@ -35,6 +35,9 @@ export const useImageSearch = (iter: ReturnType<typeof createImageSearchIter>) =
   const {
     showGenInfo,
     imageGenInfo,
+    hasNegativePrompt,
+    copyPositivePrompt,
+    copyNegativePrompt,
     q: genInfoQueue,
     onContextMenuClick,
     onFileItemClick
@@ -79,6 +82,9 @@ export const useImageSearch = (iter: ReturnType<typeof createImageSearchIter>) =
     gridItems,
     showGenInfo,
     imageGenInfo,
+    hasNegativePrompt,
+    copyPositivePrompt,
+    copyNegativePrompt,
     q: genInfoQueue,
     onContextMenuClick,
     onFileItemClick,

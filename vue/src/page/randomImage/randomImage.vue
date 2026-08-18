@@ -87,6 +87,9 @@ const { itemSize, gridItems, cellWidth, onScroll } = useFilesDisplay()
 const {
   showGenInfo,
   imageGenInfo,
+  hasNegativePrompt,
+  copyPositivePrompt,
+  copyNegativePrompt,
   q: genInfoQueue,
   onContextMenuClick,
   onFileItemClick
@@ -135,6 +138,10 @@ const onContextMenuClickU: typeof onContextMenuClick = async (e, file, idx) => {
               overflow: auto;
             " @dblclick="copy2clipboardI18n(imageGenInfo)">
           <div class="hint">{{ $t('doubleClickToCopy') }}</div>
+          <div class="gen-info-copy-actions" @click.stop @dblclick.stop>
+            <a-button size="small" @click="copyPositivePrompt">{{ $t('copyPositivePrompt') }}</a-button>
+            <a-button size="small" :disabled="!hasNegativePrompt" :title="hasNegativePrompt ? '' : $t('noNegativePromptToCopy')" @click="copyNegativePrompt">{{ $t('copyNegativePrompt') }}</a-button>
+          </div>
           {{ imageGenInfo }}
         </div>
       </ASkeleton>
@@ -198,5 +205,11 @@ const onContextMenuClickU: typeof onContextMenuClick = async (e, file, idx) => {
       padding: 30vh 128px 0;
     }
   }
+}
+
+.gen-info-copy-actions {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 8px;
 }
 </style>

@@ -328,6 +328,8 @@ You can specify which snapshot to restore to when starting IIB in the global set
   openContextMenu: 'Open context menu',
   copyPrompt: 'Copy prompt',
   copyPositivePrompt: 'Copy positive prompt',
+  copyNegativePrompt: 'Copy negative prompt',
+  noNegativePromptToCopy: 'This image has no negative prompt',
   toggleTag: 'Toggle Tag Selection (Favorite)',
   addCompleted: 'Add completed',
   removeCompleted: 'Remove Completed',

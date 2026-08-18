@@ -292,6 +292,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   openContextMenu: '打開上下文功能表',
   copyPrompt: '複製提示',
   copyPositivePrompt: '複製正向提示',
+  copyNegativePrompt: '複製負向提示',
+  noNegativePromptToCopy: '此圖片沒有負向提示詞',
   refreshCompleted: '重新整理完成',
   'walk-mode-move-message': '在walk模式下僅允許使用"快速移動"移動位置',
   manualExitFullScreen: '你刪除了最後一張圖片,也許需要你手動退出全螢幕檢視',

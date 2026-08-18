@@ -1,6 +1,6 @@
 import { type FileTransferTabPane, type Shortcut  } from '@/store/useGlobalStore'
 import { useMouseInElement } from '@vueuse/core'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { genInfoCompleted, getImageGenerationInfo, openFolder, openWithDefaultApp, setImgPath } from '@/api'
 import {
   delay,
@@ -30,6 +30,35 @@ export function useFileItemActions (
 ) {
   const showGenInfo = ref(false)
   const imageGenInfo = ref('')
+  // Reuses the shared parser (@/util/stable-diffusion-image-metadata) that
+  // already understands both A1111 parameter strings and our video-container
+  // format - the same parser send2wan2gpStartImageWithPrompt and
+  // PromptEditorModal use. No second implementation here.
+  const genInfoMeta = computed(() => parse(imageGenInfo.value))
+  const hasNegativePrompt = computed(() => !!genInfoMeta.value.negativePrompt)
+  const copyPositivePrompt = () => {
+    copy2clipboardI18n(genInfoMeta.value.prompt ?? '')
+  }
+  const copyNegativePrompt = () => {
+    // An empty negative prompt is normal (most images have none). Rather than
+    // copy an empty string and claim success, the caller disables this action
+    // via hasNegativePrompt - guard here too in case it's ever wired up
+    // without that check.
+    if (!hasNegativePrompt.value) {
+      return
+    }
+    copy2clipboardI18n(genInfoMeta.value.negativePrompt ?? '')
+  }
+  // Document-wide rather than targeted: the currently playing video may be in
+  // the Tiktok-style viewer, a grid preview, or a modal. Pausing an
+  // already-paused video is a no-op.
+  const pauseAllPlayingVideos = () => {
+    document.querySelectorAll('video').forEach((video) => {
+      if (!video.paused) {
+        video.pause()
+      }
+    })
+  }
   const {
     sortedFiles,
     previewIdx,
@@ -213,6 +242,10 @@ export function useFileItemActions (
         //
         // No setImgPath round-trip first, unlike the A1111 sends below: nothing
         // here needs the image staged, only named.
+        //
+        // Sending settings moves the user's attention to Wan2GP - stop any
+        // video still playing in the gallery so it doesn't keep going unseen.
+        pauseAllPlayingVideos()
         imgTransferBus.postMessage({
           ...preset,
           event: 'wan2gp_load_settings',
@@ -225,6 +258,10 @@ export function useFileItemActions (
         // Same bus, same preset shape as send2wan2gpSettings above - only the
         // path travels, no setImgPath round-trip. The host plugin stages the
         // image as Wan2GP's i2v start image on the other end.
+        //
+        // Same gesture from the user's point of view as send2wan2gpSettings,
+        // so it gets the same video-pause treatment.
+        pauseAllPlayingVideos()
         imgTransferBus.postMessage({
           ...preset,
           event: 'wan2gp_set_start_image',
@@ -535,6 +572,9 @@ export function useFileItemActions (
     onContextMenuClick,
     showGenInfo,
     imageGenInfo,
+    hasNegativePrompt,
+    copyPositivePrompt,
+    copyNegativePrompt,
     q
   }
 }

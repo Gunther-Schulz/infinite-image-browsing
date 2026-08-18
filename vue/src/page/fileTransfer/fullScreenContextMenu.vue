@@ -280,6 +280,18 @@ const copyPositivePrompt = () => {
   const text = imageGenInfo.value.includes(neg) ? imageGenInfo.value.split(neg)[0] : geninfoFrags.value[0] ?? ''
   copy2clipboardI18n(unescapeHtml(text.trim()))
 }
+// geninfoStruct is already the shared parser's output (parse(), imported
+// above) - reused here rather than a second ad-hoc split, unlike
+// copyPositivePrompt just above.
+const hasNegativePrompt = computed(() => !!geninfoStruct.value.negativePrompt)
+const copyNegativePrompt = () => {
+  // An empty negative prompt is normal; the button is disabled via
+  // hasNegativePrompt so this only guards direct calls.
+  if (!hasNegativePrompt.value) {
+    return
+  }
+  copy2clipboardI18n(geninfoStruct.value.negativePrompt ?? '')
+}
 const requestFullscreen = () => document.body.requestFullscreen()
 
 const copy = (val: any) => {
@@ -552,6 +564,14 @@ const editPromptAndReload = async () => {
           }}</a-button>
           <a-button @click="copyPositivePrompt" v-if="imageGenInfo">{{
             $t('copyPositivePrompt')
+          }}</a-button>
+          <a-button
+            @click="copyNegativePrompt"
+            v-if="imageGenInfo"
+            :disabled="!hasNegativePrompt"
+            :title="hasNegativePrompt ? '' : $t('noNegativePromptToCopy')"
+          >{{
+            $t('copyNegativePrompt')
           }}</a-button>
           <a-button 
             @click="analyzeTagsWithAI"

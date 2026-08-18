@@ -44,6 +44,9 @@ const {
   gridItems,
   showGenInfo,
   imageGenInfo,
+  hasNegativePrompt,
+  copyPositivePrompt,
+  copyNegativePrompt,
   q: genInfoQueue,
   multiSelectedIdxs,
   onFileItemClick,
@@ -126,6 +129,10 @@ const onTiktokViewClick = () => {
             @dblclick="copy2clipboardI18n(imageGenInfo)"
           >
             <div class="hint">{{ $t('doubleClickToCopy') }}</div>
+            <div class="gen-info-copy-actions" @click.stop @dblclick.stop>
+              <a-button size="small" @click="copyPositivePrompt">{{ $t('copyPositivePrompt') }}</a-button>
+              <a-button size="small" :disabled="!hasNegativePrompt" :title="hasNegativePrompt ? '' : $t('noNegativePromptToCopy')" @click="copyNegativePrompt">{{ $t('copyNegativePrompt') }}</a-button>
+            </div>
             {{ imageGenInfo }}
           </div>
         </ASkeleton>
@@ -234,5 +241,11 @@ const onTiktokViewClick = () => {
       text-align: center;
     }
   }
+}
+
+.gen-info-copy-actions {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 8px;
 }
 </style>
