@@ -7,6 +7,7 @@ from scripts.iib.logger import logger
 
 from fastapi import FastAPI
 import gradio as gr
+import os
 from modules.shared import cmd_opts
 
 """
@@ -73,6 +74,23 @@ def on_ui_tabs():
 
 def on_app_started(_: gr.Blocks, app: FastAPI) -> None:
     # 第一个参数是SD-WebUI传进来的gr.Blocks，但是不需要使用
+    #
+    # Say so in the log the moment we mount. Without this line an empty log is
+    # ambiguous in the worst way: "started fine and nothing happened yet" and
+    # "never started at all" look identical, so the log cannot answer the one
+    # question it gets opened for.
+    #
+    # Measured 2026-08-18: the tab rendered the word "error", and the log held
+    # nothing from that launch - not even the version line, which only fires
+    # once the frontend calls back. That silence was read as the extension
+    # having failed to load. It had loaded; the host was refusing to serve the
+    # JavaScript that would have called us. A mount line would have separated
+    # those two in one glance.
+    logger.info(
+        "extension mounted - api base %s, log %s",
+        "/infinite_image_browsing",
+        os.getenv("IIB_LOG_PATH") or "<default>",
+    )
     DEFAULT_BASE = "/infinite_image_browsing"
     fe_public_path = None
     subpath = vars(cmd_opts).get("subpath")
