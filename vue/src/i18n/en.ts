@@ -445,6 +445,7 @@ You can specify which snapshot to restore to when starting IIB in the global set
   loopMedia: 'Repeat videos and audio when they reach the end',
   autoHideVideoControls: 'Hide video controls while playing until the mouse moves',
   hideVideoControlScrim: 'Hide the dark fade behind the video controls',
+  pauseVideoOnSendToWan2gp: 'Pause playing videos when sending to Wan2GP',
   searchResults: 'Search Results',
   imgSearch: 'Image Search',
   onlyFoldersAndImages: 'Only show folders/images/videos',

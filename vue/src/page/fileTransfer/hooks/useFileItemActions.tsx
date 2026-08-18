@@ -52,7 +52,15 @@ export function useFileItemActions (
   // Document-wide rather than targeted: the currently playing video may be in
   // the Tiktok-style viewer, a grid preview, or a modal. Pausing an
   // already-paused video is a no-op.
+  //
+  // Opt-out via the global setting rather than unconditional: "send this clip
+  // to the generator and keep watching this one" is a real way to work, and
+  // the click that sends cannot be told apart from the click that sends AND
+  // wants silence.
   const pauseAllPlayingVideos = () => {
+    if (!global.pauseVideoOnSendToWan2gp) {
+      return
+    }
     document.querySelectorAll('video').forEach((video) => {
       if (!video.paused) {
         video.pause()
@@ -279,6 +287,12 @@ export function useFileItemActions (
         // Wan2GP still alike, where Wan2GP's own settings reader understands
         // only its own. Same parser the preview panel uses
         // (functionalCallableComp.tsx).
+        //
+        // Same destination, same gesture, so the same video pause as the two
+        // cases above. It was missed when those two got it, and this is the
+        // action the operator actually uses - "send the prompt" - so the
+        // feature read as simply not working.
+        pauseAllPlayingVideos()
         let prompt = ''
         let negativePrompt = ''
         try {

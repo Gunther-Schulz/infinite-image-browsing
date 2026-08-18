@@ -224,6 +224,7 @@ export const presistKeys = [
   'loopMedia',
   'autoHideVideoControls',
   'hideVideoControlScrim',
+  'pauseVideoOnSendToWan2gp',
   'onlyFoldersAndImages',
   'fileTypeFilter',
   'shortcut',
@@ -362,6 +363,15 @@ export const useGlobalStore = defineStore(
     //
     // Default OFF, rule 43: upstream shows controls permanently.
     const autoHideVideoControls = ref(false)
+
+    // Sending a file to Wan2GP moves the user's attention out of the gallery,
+    // so a video left playing here keeps running unwatched - and, on a long
+    // clip, keeps decoding while the generator wants the GPU. Pausing on send
+    // is the gesture most people want, so this defaults ON; it is a toggle
+    // rather than a fixed behaviour because "send this, keep watching that" is
+    // a legitimate way to work and there is no way to tell the two apart from
+    // the click alone.
+    const pauseVideoOnSendToWan2gp = ref(true)
 
     // Chromium paints a dark gradient behind the control bar so its white
     // glyphs stay readable over any frame. On a video library that fade sits
@@ -513,6 +523,7 @@ export const useGlobalStore = defineStore(
       autoPlayMedia,
       loopMedia,
       autoHideVideoControls,
+      pauseVideoOnSendToWan2gp,
       hideVideoControlScrim,
       openTagSearchMatchedImageGridInRight,
       onlyFoldersAndImages: ref(true), // 保留用于向后兼容

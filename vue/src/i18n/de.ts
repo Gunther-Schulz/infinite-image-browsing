@@ -233,6 +233,7 @@ export const de: Partial<IIBI18nMap> = {
   loopMedia: 'Videos und Audio am Ende wiederholen',
   autoHideVideoControls: 'Video-Steuerung während der Wiedergabe ausblenden, bis die Maus bewegt wird',
   hideVideoControlScrim: 'Dunklen Verlauf hinter der Video-Steuerung ausblenden',
+  pauseVideoOnSendToWan2gp: 'Laufende Videos beim Senden an Wan2GP pausieren',
   searchResults: 'Suchergebnisse',
   imgSearch: 'Bildsuche',
   send2savedDir: 'In den gespeicherten Ordner senden',

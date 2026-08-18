@@ -240,6 +240,9 @@ const presetShortcutGroups = computed(() => ([
       <a-form-item :label="$t('hideVideoControlScrim')">
         <a-switch v-model:checked="globalStore.hideVideoControlScrim" />
       </a-form-item>
+      <a-form-item :label="$t('pauseVideoOnSendToWan2gp')">
+        <a-switch v-model:checked="globalStore.pauseVideoOnSendToWan2gp" />
+      </a-form-item>
       <a-form-item :label="$t('openOnAppStart')">
         <search-select v-model:value="globalStore.defaultInitinalPage" :options="defaultInitinalPageOptions" />
       </a-form-item>

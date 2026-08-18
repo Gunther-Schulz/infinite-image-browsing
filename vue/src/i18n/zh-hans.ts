@@ -254,6 +254,7 @@ export const zhHans = {
   loopMedia: '视频和音频播放结束后循环',
   autoHideVideoControls: '播放时隐藏视频控件，移动鼠标后再显示',
   hideVideoControlScrim: '隐藏视频控件后的深色渐变',
+  pauseVideoOnSendToWan2gp: '发送到 Wan2GP 时暂停正在播放的视频',
   searchResults: '搜索结果',
   imgSearch: '图像搜索',
   onlyFoldersAndImages: '只显示文件夹/图像/视频',

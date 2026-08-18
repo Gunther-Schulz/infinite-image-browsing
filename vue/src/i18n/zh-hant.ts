@@ -261,6 +261,7 @@ export const zhHant: Partial<IIBI18nMap> = {
   loopMedia: '影片和音訊播放結束後循環',
   autoHideVideoControls: '播放時隱藏影片控制項，移動滑鼠後再顯示',
   hideVideoControlScrim: '隱藏影片控制項後的深色漸層',
+  pauseVideoOnSendToWan2gp: '傳送到 Wan2GP 時暫停正在播放的影片',
   searchResults: '搜尋結果',
   imgSearch: '圖片搜尋',
   onlyFoldersAndImages: '只顯示文件夾/圖片/視頻',
