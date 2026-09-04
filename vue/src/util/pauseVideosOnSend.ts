@@ -18,15 +18,19 @@ import { useGlobalStore } from '@/store/useGlobalStore'
  * popup, the Tiktok-style viewer, or a modal. Pausing an already-paused video
  * is a no-op, so over-reaching costs nothing and under-reaching is the bug.
  */
+export const pauseAllVideos = () => {
+  document.querySelectorAll('video').forEach((video) => {
+    if (!video.paused) {
+      video.pause()
+    }
+  })
+}
+
 export const pauseVideosOnSendToWan2gp = () => {
   // Read the store per call, not at module scope: this module is imported
   // during app setup, before pinia is guaranteed to be installed.
   if (!useGlobalStore().pauseVideoOnSendToWan2gp) {
     return
   }
-  document.querySelectorAll('video').forEach((video) => {
-    if (!video.paused) {
-      video.pause()
-    }
-  })
+  pauseAllVideos()
 }
