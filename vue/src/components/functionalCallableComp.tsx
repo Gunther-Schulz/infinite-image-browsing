@@ -589,7 +589,18 @@ const openMediaModalImpl = (
                               {sections.loras.map((row, i) => (
                                 <tr key={row.name} style={{ background: i % 2 ? 'transparent' : 'rgba(127,127,127,0.06)' }}>
                                   <td style={{ padding: '5px 10px', color: 'var(--zp-primary)', verticalAlign: 'top', wordBreak: 'break-word' }}>{row.name}</td>
-                                  <td style={{ padding: '5px 10px', width: '1%', whiteSpace: 'nowrap', color: 'var(--zp-primary)', verticalAlign: 'top' }}>x{row.multiplier}</td>
+                                  {/* A REAL width, not the `width:1%` + nowrap shrink-to-fit idiom
+                                      that was here: that idiom only works under table-layout:auto,
+                                      where the browser grows the column to its content. This table
+                                      is table-layout:fixed (above), which takes the 1% literally -
+                                      about 3.6px in the 384px info panel - so the multiplier
+                                      overflowed the cell, ran past the table's right edge, and was
+                                      clipped by the wrapper's overflow:hidden. The strengths were
+                                      computed and rendered the whole time, into a 3-pixel column
+                                      with no way to scroll to them.
+                                      4.5em fits "x0.85"; the sibling key/value table (renderKvTable)
+                                      pins a width the same way, on its first column. */}
+                                  <td style={{ padding: '5px 10px', width: '4.5em', whiteSpace: 'nowrap', color: 'var(--zp-primary)', verticalAlign: 'top' }}>x{row.multiplier}</td>
                                 </tr>
                               ))}
                             </tbody>
