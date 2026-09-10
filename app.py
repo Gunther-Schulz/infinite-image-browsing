@@ -11,7 +11,7 @@ from scripts.iib.tool import (
     sd_img_dirs,
     normalize_paths,
 )
-from scripts.iib.db.datamodel import DataBase, Image, ExtraPath
+from scripts.iib.db.datamodel import DataBase, Folder, Image, ExtraPath
 from scripts.iib.db.update_image_data import update_image_data
 import argparse
 from typing import Optional, Coroutine
@@ -186,6 +186,14 @@ def setup_parser() -> argparse.ArgumentParser:
         "--update_image_index", action="store_true", help="Update the image index"
     )
     parser.add_argument(
+        "--index-extra-paths",
+        action="store_true",
+        help="Index the directories registered as extra paths, then EXIT without "
+        "starting a server. Unlike --update_image_index this needs no "
+        "--sd_webui_config: it indexes exactly the directories on the homepage, "
+        "and of those only the ones that are new or whose contents changed.",
+    )
+    parser.add_argument(
         "--generate_video_cover",
         action="store_true",
         help="Pre-generate video cover images to speed up browsing.",
@@ -278,6 +286,28 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args_dict = vars(args)
 
+    # First of the one-shot maintenance branches, and deliberately so: covers and
+    # caches are generated for INDEXED entries, so where more than one flag is
+    # passed, indexing is the one that has to run. Each branch exits, so exactly
+    # one of them ever does.
+    #
+    # --update_image_index cannot serve this purpose. It is honoured only inside
+    # wrap_app and only when sd_webui_config is set (see wrap_app above), so
+    # without an A1111 config it indexes nothing and falls through to
+    # launch_app - which binds a port and serves. A host that has no such config
+    # and only wants the index built therefore had no flag to call at all.
+    if args_dict.get("index_extra_paths"):
+        conn = DataBase.get_conn()
+        # The registered rows are already the answer to "what should be
+        # indexed"; get_expired_dirs narrows them to the new and the changed.
+        dirs = Folder.get_expired_dirs(conn)
+        if not dirs:
+            print("nothing changed since the last run")
+        else:
+            print(f"scanning {len(dirs)} director" + ("y" if len(dirs) == 1 else "ies"))
+            update_image_data(dirs)
+            print(f"indexed: {Image.count(conn=conn)} file(s) total")
+        exit(0)
     if args_dict.get("generate_video_cover"):
         from scripts.iib.video_cover_gen import generate_video_covers
 
