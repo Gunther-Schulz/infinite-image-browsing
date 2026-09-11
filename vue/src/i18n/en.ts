@@ -403,6 +403,8 @@ You can specify which snapshot to restore to when starting IIB in the global set
   nextMedia: 'Next',
   sendAsStartImage: 'Add as video start image',
   startImageSentToVideoGenerator: 'Sent as start image',
+  sendAsImageRef: 'Add as video reference images',
+  imageRefSentToVideoGenerator: 'Sent as reference images',
   sendAsStartImageWithPrompt: 'Add as video start image, with prompt',
   startImageAndPromptSent: 'Sent as start image, with prompt',
   metaSectionGeneration: 'Generation',

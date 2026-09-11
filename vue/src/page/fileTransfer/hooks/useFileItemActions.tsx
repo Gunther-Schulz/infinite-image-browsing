@@ -295,6 +295,23 @@ export function useFileItemActions (
         message.success(t('startImageSentToVideoGenerator'))
         return
       }
+      case 'send2wan2gpAddImageRef': {
+        // Same bus, same preset shape as send2wan2gpStartImage above - only
+        // the path travels, no setImgPath round-trip. The host plugin
+        // appends (or replaces, per its own one-image-ref rule) this image
+        // into Wan2GP's Reference Images gallery on the other end.
+        //
+        // Same gesture from the user's point of view as the sends above, so
+        // it gets the same video-pause treatment.
+        pauseAllPlayingVideos()
+        imgTransferBus.postMessage({
+          ...preset,
+          event: 'wan2gp_add_image_ref',
+          path: file.fullpath
+        })
+        message.success(t('imageRefSentToVideoGenerator'))
+        return
+      }
       case 'send2wan2gpStartImageWithPrompt': {
         // Same bus and destination as send2wan2gpStartImage above, plus the
         // prompt - which has to be fetched and parsed HERE, because it lives

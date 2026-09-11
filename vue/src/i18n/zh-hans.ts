@@ -210,6 +210,8 @@ export const zhHans = {
   nextMedia: '下一个',
   sendAsStartImage: '添加为视频起始图',
   startImageSentToVideoGenerator: '已作为起始图发送',
+  sendAsImageRef: '添加为视频参考图',
+  imageRefSentToVideoGenerator: '已作为参考图发送',
   sendAsStartImageWithPrompt: '添加为视频起始图（含提示词）',
   startImageAndPromptSent: '已作为起始图（含提示词）发送',
   metaSectionGeneration: '生成',
