@@ -217,6 +217,8 @@ export const zhHant: Partial<IIBI18nMap> = {
   sendAsStartImage: '新增為影片起始圖',
   startImageSentToVideoGenerator: '已作為起始圖發送',
   sendAsImageRef: '新增為影片參考圖',
+  restoreAnatomyRefPair: '還原解剖參考圖對',
+  anatomyRefPairRestored: '參考圖對已傳送至解剖面板',
   imageRefSentToVideoGenerator: '已作為參考圖發送',
   sendAsStartImageWithPrompt: '新增為影片起始圖（含提示詞）',
   startImageAndPromptSent: '已作為起始圖（含提示詞）發送',

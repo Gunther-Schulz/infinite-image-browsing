@@ -312,6 +312,27 @@ export function useFileItemActions (
         message.success(t('imageRefSentToVideoGenerator'))
         return
       }
+      case 'send2wan2gpRestoreAnatomyRefs': {
+        // Restores a saved anatomy-reference PAIR into Wan2GP's anatomy-refs
+        // panel, from whichever half the user clicked - the sibling is found
+        // on the other end, by stem, so there is nothing to multi-select.
+        //
+        // A different bus EVENT from send2wan2gpAddImageRef, and a different
+        // listener on the other end, because it is a different act: that one
+        // puts a picture in a gallery, this one re-arms the panel state that
+        // makes Wan2GP write the anatomy-transfer prompt lines. Pictures
+        // added without that state reach the model as bare references.
+        //
+        // Same video-pause treatment as every other send.
+        pauseAllPlayingVideos()
+        imgTransferBus.postMessage({
+          ...preset,
+          event: 'wan2gp_restore_anatomy_refs',
+          path: file.fullpath
+        })
+        message.success(t('anatomyRefPairRestored'))
+        return
+      }
       case 'send2wan2gpStartImageWithPrompt': {
         // Same bus and destination as send2wan2gpStartImage above, plus the
         // prompt - which has to be fetched and parsed HERE, because it lives

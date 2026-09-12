@@ -211,6 +211,8 @@ export const zhHans = {
   sendAsStartImage: '添加为视频起始图',
   startImageSentToVideoGenerator: '已作为起始图发送',
   sendAsImageRef: '添加为视频参考图',
+  restoreAnatomyRefPair: '恢复解剖参考图对',
+  anatomyRefPairRestored: '参考图对已发送至解剖面板',
   imageRefSentToVideoGenerator: '已作为参考图发送',
   sendAsStartImageWithPrompt: '添加为视频起始图（含提示词）',
   startImageAndPromptSent: '已作为起始图（含提示词）发送',

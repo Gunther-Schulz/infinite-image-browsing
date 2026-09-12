@@ -9,7 +9,7 @@ import type { MenuInfo } from 'ant-design-vue/lib/menu/src/interface'
 import { debounce, throttle, last } from 'lodash-es'
 import { computed, watch, onMounted } from 'vue'
 import { ref } from 'vue'
-import { copy2clipboardI18n, isImageFile, type Dict } from '@/util'
+import { copy2clipboardI18n, isImageFile, isAnatomyRefPair, type Dict } from '@/util'
 import { useResizeAndDrag } from './useResize'
 import {
   DragOutlined,
@@ -522,6 +522,7 @@ const editPromptAndReload = async () => {
                     <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
                     <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
                     <a-menu-item key="send2wan2gpAddImageRef" v-if="isImageFile(file.name)">{{ $t('sendAsImageRef') }}</a-menu-item>
+                    <a-menu-item key="send2wan2gpRestoreAnatomyRefs" v-if="isAnatomyRefPair(file.name)">{{ $t('restoreAnatomyRefPair') }}</a-menu-item>
                     <a-menu-item key="send2wan2gpStartImageWithPrompt" v-if="isImageFile(file.name)">{{ $t('sendAsStartImageWithPrompt') }}</a-menu-item>
                   </template>
                   <template v-if="global.conf?.launch_mode === 'sd'">

@@ -404,6 +404,8 @@ You can specify which snapshot to restore to when starting IIB in the global set
   sendAsStartImage: 'Add as video start image',
   startImageSentToVideoGenerator: 'Sent as start image',
   sendAsImageRef: 'Add as video reference images',
+  restoreAnatomyRefPair: 'Restore anatomy reference pair',
+  anatomyRefPairRestored: 'Reference pair sent to the anatomy panel',
   imageRefSentToVideoGenerator: 'Sent as reference images',
   sendAsStartImageWithPrompt: 'Add as video start image, with prompt',
   startImageAndPromptSent: 'Sent as start image, with prompt',

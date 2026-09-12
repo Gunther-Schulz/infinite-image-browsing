@@ -68,6 +68,27 @@ export function isImageFile (filename: string): boolean {
   return extension !== undefined && exts.includes(`.${extension}`)
 }
 
+/**
+ * True when `filename` is one half of a Wan2GP anatomy-reference pair.
+ *
+ * Those pairs are written two files at a time from one stem --
+ * "<stamp>_<seed>_front.png" and "<stamp>_<seed>_side.png" -- and the stem is
+ * the ONLY thing that pairs them: there is no index, no sidecar the browser
+ * reads, nothing that can fall out of step with the files themselves. So the
+ * restore action offers itself exactly when the name says the picture has a
+ * sibling.
+ *
+ * The extension is checked too, via isImageFile: "notes_front.txt" ends with
+ * the right word and is not a reference picture.
+ */
+export function isAnatomyRefPair (filename: string): boolean {
+  if (!isImageFile(filename)) {
+    return false
+  }
+  const stem = filename.slice(0, filename.lastIndexOf('.')).toLowerCase()
+  return stem.endsWith('_front') || stem.endsWith('_side')
+}
+
 export function isVideoFile (filename: string): boolean {
   if (typeof filename !== 'string') {
     return false

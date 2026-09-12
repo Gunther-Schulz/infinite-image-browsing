@@ -2,7 +2,7 @@
 import type { Tag } from '@/api/db'
 import type { FileNodeInfo } from '@/api/files'
 import type { MenuInfo } from 'ant-design-vue/lib/menu/src/interface'
-import { isMediaFile, isImageFile } from '@/util'
+import { isMediaFile, isImageFile, isAnatomyRefPair } from '@/util'
 import { StarFilled, StarOutlined } from '@/icon'
 import { useGlobalStore } from '@/store/useGlobalStore'
 import { computed } from 'vue'
@@ -45,6 +45,7 @@ const tags = computed(() => {
             <a-menu-item key="send2wan2gpSettings">{{ $t('sendSettingsToVideoGenerator') }}</a-menu-item>
             <a-menu-item key="send2wan2gpStartImage" v-if="isImageFile(file.name)">{{ $t('sendAsStartImage') }}</a-menu-item>
             <a-menu-item key="send2wan2gpAddImageRef" v-if="isImageFile(file.name)">{{ $t('sendAsImageRef') }}</a-menu-item>
+            <a-menu-item key="send2wan2gpRestoreAnatomyRefs" v-if="isAnatomyRefPair(file.name)">{{ $t('restoreAnatomyRefPair') }}</a-menu-item>
             <a-menu-item key="send2wan2gpStartImageWithPrompt" v-if="isImageFile(file.name)">{{ $t('sendAsStartImageWithPrompt') }}</a-menu-item>
           </template>
           <template v-if="global.conf?.launch_mode === 'sd'">

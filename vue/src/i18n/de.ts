@@ -193,6 +193,8 @@ export const de: Partial<IIBI18nMap> = {
   sendAsStartImage: 'Als Video-Startbild hinzufügen',
   startImageSentToVideoGenerator: 'Als Startbild gesendet',
   sendAsImageRef: 'Als Video-Referenzbilder hinzufügen',
+  restoreAnatomyRefPair: 'Anatomie-Referenzpaar wiederherstellen',
+  anatomyRefPairRestored: 'Referenzpaar an das Anatomie-Panel gesendet',
   imageRefSentToVideoGenerator: 'Als Referenzbilder gesendet',
   sendAsStartImageWithPrompt: 'Als Video-Startbild mit Prompt hinzufügen',
   startImageAndPromptSent: 'Als Startbild mit Prompt gesendet',
