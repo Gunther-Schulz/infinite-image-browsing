@@ -20,7 +20,7 @@ from typing import Optional
 
 from scripts.iib.logger import logger
 from scripts.iib.parsers.model import ImageGenerationInfo, ImageGenerationParams
-from scripts.iib.tool import parse_prompt
+from scripts.iib.tool import open_video_container, parse_prompt
 
 # Tags worth looking in, most likely first. `comment` is where WanGP writes;
 # the others are common places for a tool to leave a blob.
@@ -52,7 +52,7 @@ def read_container_tags(file_path: str) -> dict:
         return {}
 
     try:
-        with av.open(file_path, metadata_errors="ignore") as container:
+        with open_video_container(file_path) as container:
             return dict(container.metadata or {})
     except Exception as e:
         logger.debug("Could not read container tags from %s: %s", file_path, e)

@@ -866,6 +866,28 @@ def accumulate_streaming_response(resp: requests.Response) -> str:
     return content_buffer.strip()
 
 
+def open_video_container(path: str):
+    """av.open() that never fails on a container tag holding binary.
+
+    Two pyav generations, one behaviour. Up to pyav 18 the tags are decoded as
+    strict UTF-8 while the file opens, and metadata_errors="ignore" is what
+    stops a binary tag raising. pyav 19 REMOVED that argument - it decodes
+    every tag with surrogateescape itself and cannot raise there - so passing
+    it is a TypeError before the file is even touched. That TypeError took
+    every video cover in the gallery with it the day the host app's
+    environment moved to pyav 19: the videos played, none had a thumbnail.
+
+    Asked of the library rather than of its version number: the argument is
+    tried, and only its rejection falls back to the plain call.
+    """
+    import av
+
+    try:
+        return av.open(path, metadata_errors="ignore")
+    except TypeError:
+        return av.open(path)
+
+
 def read_video_frame(path: str, index: int = 16):
     """A frame from a video, as an RGB array, for use as its cover.
 
@@ -888,9 +910,7 @@ def read_video_frame(path: str, index: int = 16):
     A video with fewer than `index` frames yields its last frame rather than
     nothing: a short clip should still get a cover.
     """
-    import av
-
-    with av.open(path, metadata_errors="ignore") as container:
+    with open_video_container(path) as container:
         stream = container.streams.video[0]
         stream.thread_type = "AUTO"
         last = None
